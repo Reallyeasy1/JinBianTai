@@ -45,6 +45,19 @@ The three `verify:*` commands currently return **BLOCKED / exit 2** because genu
 
 To supply real evidence, follow [REFERENCE_FORMAT.md](docs/REFERENCE_FORMAT.md) and [EVIDENCE_AND_TESTS.md](docs/EVIDENCE_AND_TESTS.md). Keep raw captures private; review sanitized artifacts before publication. Changing a manifest label or policy status does not verify anything.
 
+## Collect comparison inputs
+
+[The capture workflow](docs/CAPTURE_WORKFLOW.md) now provides two offline commands:
+
+```sh
+npm run evidence:init -- --definition source-definition.json --out evidence/private/typeform-run
+npm run evidence:normalize -- --definition evidence/private/typeform-run/definition.json --capture evidence/private/typeform-run/D1.capture.json --response-id ACTUAL_RESPONSE_ID --unfiltered --out evidence/private/typeform-run/D1
+```
+
+Use actual local source files and response IDs. Initialization creates an incomplete private draft; normalization preserves captured stored answers without consulting replacement routing. Neither command marks evidence verified. Explicit `--manifest` verification keeps detailed comparisons under ignored `reports/private/`.
+
+[GitHub engineering CI](docs/CI.md) runs typecheck, build, tests, and browser journeys. Its scope is synthetic engineering behavior; genuine source compatibility is a separate gate.
+
 ## Design and continuation
 
 | Document | Purpose |
@@ -54,6 +67,8 @@ To supply real evidence, follow [REFERENCE_FORMAT.md](docs/REFERENCE_FORMAT.md) 
 | [Agent workflow](docs/AGENT_WORKFLOW.md) | Original three-hour coordination and recovery plan |
 | [Acceptance contract](docs/ACCEPTANCE.md) | Engineering, evidence, and release gates |
 | [Reference format](docs/REFERENCE_FORMAT.md) | Implemented evidence package and comparison interface |
+| [Capture workflow](docs/CAPTURE_WORKFLOW.md) | Private intake, independent stored-response projection, and source experiments |
+| [Engineering CI](docs/CI.md) | Automated checks and report scope |
 | [Continuation entry point](docs/START_HERE.md) | Agent prerequisites and handoff |
 
 Local compute, storage, setup, and maintenance have costs; no measured savings or production scalability claim is made. MIT-licensed project code; toolchain notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

@@ -2,6 +2,8 @@
 
 Current state: local engineering prototype implemented. Read `docs/IMPLEMENTATION.md` and current reports first. Bundled fixtures are synthetic; genuine Typeform captures and compatibility remain absent. Do not treat engineering PASS as reference PASS or reset an existing implementation timer.
 
+Phase 2 adds offline private evidence intake and stored-answer projection; see `docs/CAPTURE_WORKFLOW.md`. Never derive expected source answers using the engine, promote drafts automatically, or publish private comparison reports. The user explicitly authorized merging PR #3; that implementation is merged. Further changes remain reviewable on their own branch unless a subsequent instruction authorizes another merge.
+
 ## Task and document precedence
 
 Follow the active user request. Planning requests stay in planning. An implementation launch such as `docs/PROMPT.md` authorizes routine local implementation, tests, fixes, commits, and a draft PR; continue through those stages without redundant approval pauses.

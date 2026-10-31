@@ -110,7 +110,8 @@ export function importForm(input: unknown): ImportResult {
   for (const [i, raw] of (Array.isArray(input.thankyou_screens) ? input.thankyou_screens.slice(0, 3) : []).entries()) {
     const path = `$.thankyou_screens[${i}]`;
     if (!object(raw)) { error(path, 'INVALID_ENDING', 'Expected an ending object.'); continue; }
-    keys(raw, ['id', 'ref', 'title', 'properties', 'attachment', 'layout'], path);
+    keys(raw, ['id', 'ref', 'type', 'title', 'properties', 'attachment', 'layout'], path);
+    if (raw.type !== undefined && raw.type !== 'thankyou_screen') error(`${path}.type`, 'UNSUPPORTED_ENDING_TYPE', 'Only ordinary thankyou_screen endings are supported; redirects are outside this subset.');
     if (!refOk(raw.ref) || endingRefs.has(raw.ref)) { error(`${path}.ref`, 'INVALID_ENDING_REF', 'Ending refs must be safe and unique.'); continue; }
     endingRefs.add(raw.ref);
     if (!nonempty(raw.title)) error(`${path}.title`, 'INVALID_ENDING_TITLE', 'A nonempty ending title is required.');

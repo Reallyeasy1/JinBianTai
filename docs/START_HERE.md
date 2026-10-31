@@ -2,6 +2,8 @@
 
 Status: local engineering implementation available. Read [IMPLEMENTATION.md](IMPLEMENTATION.md), README, and current reports first. Source compatibility remains BLOCKED. The workflow below is the original launch contract; extend the existing code rather than rebuilding it. Preserve the original deadline when resuming the same run.
 
+The implemented [capture workflow](CAPTURE_WORKFLOW.md) creates private draft packages and independent stored-answer projections. Use it to gather the missing source evidence; [engineering CI](CI.md) checks local software behavior separately.
+
 ## What one launch means
 
 One instruction starts a lead agent that coordinates evidence review, implementation, independent testing, fixes, and packaging. You should not need to approve routine implementation choices or manually sequence each task. It is not a guarantee of completion within three hours, and it cannot supply a private account, credentials, missing source observations, or denied tool permissions.

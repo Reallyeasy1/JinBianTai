@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, writeFile, mkdir, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, writeFile, mkdir, rm, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { compareValues, isCanonicalAnswers } from '../src/comparison.js';
 import { sourceFingerprint, verifyReadiness, verifyReference, verifyRelease } from '../scripts/verify.js';
 import type { Event } from '../src/model.js';
@@ -206,6 +208,127 @@ test('release rejects PASS reports with zero or inconsistent executed counts', a
     const incomplete = await verifyRelease(root, 'manifest.json');
     assert.equal(incomplete.exitCode, 2);
     assert.equal(incomplete.issues.filter(issue => issue.code === 'INCOMPLETE_REPORT').length, 2);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('explicit manifest CLI keeps captured differences private for private and public input paths', async () => {
+  const secret = 'PRIVATE_EXPECTED_ANSWER_SENTINEL_5819';
+  for (const visibility of ['private', 'public']) {
+    const root = await mkdtemp(join(tmpdir(), 'formlift-private-cli-'));
+    try {
+      const relativeManifest = join('evidence', visibility, 'case', 'manifest.json');
+      const packageDirectory = join(root, 'evidence', visibility, 'case');
+      await mkdir(packageDirectory, { recursive: true });
+      const manifest = await mockPackage(packageDirectory);
+      const expectedPath = join(packageDirectory, 'expected-0.json');
+      const expected = JSON.parse(await readFile(expectedPath, 'utf8'));
+      expected.answers.find((row: { field: string }) => row.field === 'contact').answer.value = secret;
+      const expectedBytes = JSON.stringify(expected);
+      await writeFile(expectedPath, expectedBytes);
+      manifest.cases[0]!.expected.sha256 = hash(expectedBytes);
+      await writeFile(join(root, relativeManifest), JSON.stringify(manifest));
+
+      const result = spawnSync(process.execPath, [fileURLToPath(new URL('../scripts/verify.js', import.meta.url)), 'reference', '--manifest', relativeManifest], { cwd: root, encoding: 'utf8', timeout: 10_000 });
+      assert.equal(result.error, undefined);
+      assert.equal(result.status, 1, 'The underlying source-answer mismatch must remain FAIL.');
+      assert.equal((result.stdout + result.stderr).includes(secret), false);
+      const summary = JSON.parse(result.stdout);
+      assert.equal(summary.status, 'FAIL');
+      assert.equal(summary.exitCode, 1);
+      assert.equal(summary.counts.executed, 4);
+      assert.equal(summary.counts.failed, 1);
+      assert.equal('cases' in summary, false);
+      assert.equal('policyId' in summary, false);
+      assert.deepEqual(summary.issues, [{ code: 'REFERENCE_MISMATCH' }]);
+
+      const privateDirectory = join(root, 'reports/private');
+      const detailedBytes = await readFile(join(privateDirectory, 'reference.json'), 'utf8');
+      const detailed = JSON.parse(detailedBytes);
+      assert.equal(detailed.status, 'FAIL');
+      assert.equal(detailedBytes.includes(secret), true, 'Private report must retain useful debugging differences.');
+      const historyFiles = (await readdir(privateDirectory)).filter(name => /^reference-\d+\.json$/.test(name));
+      assert.equal(historyFiles.length, 1, 'The first comparison is preserved in private history.');
+      assert.equal(await readFile(join(privateDirectory, historyFiles[0]!), 'utf8'), detailedBytes);
+      await assert.rejects(readFile(join(root, 'reports/reference.json')), { code: 'ENOENT' });
+      assert.deepEqual(await readdir(join(root, 'reports')), ['private']);
+      const repeated = spawnSync(process.execPath, [fileURLToPath(new URL('../scripts/verify.js', import.meta.url)), 'reference', '--manifest', relativeManifest], { cwd: root, encoding: 'utf8', timeout: 10_000 });
+      assert.equal(repeated.status, 1);
+      assert.equal((repeated.stdout + repeated.stderr).includes(secret), false);
+      assert.equal((await readFile(join(privateDirectory, 'reference.json'), 'utf8')).includes(secret), true);
+      assert.equal((await readdir(privateDirectory)).filter(name => /^reference-\d+\.json$/.test(name)).length, 2);
+      assert.equal(await readFile(join(privateDirectory, historyFiles[0]!), 'utf8'), detailedBytes, 'Repeating a run must preserve its first detailed result.');
+    } finally { await rm(root, { recursive: true, force: true }); }
+  }
+});
+
+test('private report CLI refuses linked and non-directory ancestors or linked latest files', async () => {
+  const secret = 'PRIVATE_SYMLINK_ANSWER_SENTINEL_4527';
+  for (const scenario of ['reports-link', 'private-link', 'latest-outside-link', 'latest-public-link', 'reports-file', 'private-file']) {
+    const root = await mkdtemp(join(tmpdir(), 'formlift-report-link-'));
+    const outside = await mkdtemp(join(tmpdir(), 'formlift-outside-target-'));
+    try {
+      const packageDirectory = join(root, 'evidence/private/capture');
+      await mkdir(packageDirectory, { recursive: true });
+      const manifest = await mockPackage(packageDirectory);
+      const expectedPath = join(packageDirectory, 'expected-0.json');
+      const expected = JSON.parse(await readFile(expectedPath, 'utf8'));
+      expected.answers.find((row: { field: string }) => row.field === 'contact').answer.value = secret;
+      const expectedBytes = JSON.stringify(expected);
+      await writeFile(expectedPath, expectedBytes);
+      manifest.cases[0]!.expected.sha256 = hash(expectedBytes);
+      await writeFile(join(packageDirectory, 'manifest.json'), JSON.stringify(manifest));
+
+      const publicDirectory = join(root, 'published');
+      await mkdir(publicDirectory);
+      const outsideTarget = join(outside, 'original.json');
+      const publicTarget = join(publicDirectory, 'original.json');
+      await writeFile(outsideTarget, 'existing outside report');
+      await writeFile(publicTarget, 'existing public report');
+      if (scenario === 'reports-link') await symlink(outside, join(root, 'reports'), 'dir');
+      else if (scenario === 'reports-file') await writeFile(join(root, 'reports'), 'ordinary file');
+      else {
+        await mkdir(join(root, 'reports'));
+        if (scenario === 'private-link') await symlink(publicDirectory, join(root, 'reports/private'), 'dir');
+        else if (scenario === 'private-file') await writeFile(join(root, 'reports/private'), 'ordinary file');
+        else {
+          await mkdir(join(root, 'reports/private'));
+          await symlink(scenario === 'latest-outside-link' ? outsideTarget : publicTarget, join(root, 'reports/private/reference.json'), 'file');
+        }
+      }
+      const result = spawnSync(process.execPath, [fileURLToPath(new URL('../scripts/verify.js', import.meta.url)), 'reference', '--manifest', 'evidence/private/capture/manifest.json'], { cwd: root, encoding: 'utf8', timeout: 10_000 });
+      assert.equal(result.error, undefined);
+      assert.equal(result.status, 1, `${scenario} must fail without writing captured differences.`);
+      assert.equal(result.stdout, '');
+      assert.equal((result.stdout + result.stderr).includes(secret), false);
+      assert.equal(result.stderr.includes(root), false);
+      assert.equal(result.stderr.includes(outside), false);
+      assert.equal(await readFile(outsideTarget, 'utf8'), 'existing outside report');
+      assert.equal(await readFile(publicTarget, 'utf8'), 'existing public report');
+      assert.deepEqual(await readdir(outside), ['original.json']);
+      assert.deepEqual(await readdir(publicDirectory), ['original.json']);
+      if (scenario.startsWith('latest-')) assert.deepEqual(await readdir(join(root, 'reports/private')), ['reference.json']);
+      if (scenario === 'reports-file') assert.equal(await readFile(join(root, 'reports'), 'utf8'), 'ordinary file');
+      if (scenario === 'private-file') assert.equal(await readFile(join(root, 'reports/private'), 'utf8'), 'ordinary file');
+    } finally { await rm(root, { recursive: true, force: true }); await rm(outside, { recursive: true, force: true }); }
+  }
+});
+
+test('default public manifest CLI retains the public report and full output contract', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'formlift-public-cli-'));
+  try {
+    const packageDirectory = join(root, 'evidence/public');
+    await mkdir(packageDirectory, { recursive: true });
+    await mockPackage(packageDirectory);
+    const result = spawnSync(process.execPath, [fileURLToPath(new URL('../scripts/verify.js', import.meta.url)), 'reference'], { cwd: root, encoding: 'utf8', timeout: 10_000 });
+    assert.equal(result.error, undefined);
+    assert.equal(result.status, 0);
+    const report = JSON.parse(await readFile(join(root, 'reports/reference.json'), 'utf8'));
+    assert.deepEqual(JSON.parse(result.stdout), report);
+    assert.equal(report.cases.length, 4);
+    assert.equal(report.counts.executed, 4);
+    assert.equal(report.status, 'PASS');
+    assert.equal((await readdir(join(root, 'reports'))).some(name => /^reference-\d+\.json$/.test(name)), true);
+    await assert.rejects(readdir(join(root, 'reports/private')), { code: 'ENOENT' });
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

@@ -4,6 +4,8 @@ No reference evidence is bundled. The engineering demo and tests use synthetic i
 
 The verifier checks files, hashes, schema, declared provenance, experimental coverage, and comparisons. It cannot authenticate who captured a file or independently establish that its contents came from Typeform. Do not change a synthetic fixture's label to `OBSERVED` to satisfy a gate.
 
+Use [CAPTURE_WORKFLOW.md](CAPTURE_WORKFLOW.md) for the implemented private scaffold and stored-response projection commands. Every explicit `--manifest` CLI invocation keeps detailed reports in ignored `reports/private/` and prints only a summary; the default reviewed public package still uses `reports/`.
+
 ## Package layout
 
 Place a manifest at `evidence/public/manifest.json` only after reviewing its contents for publication. Alternatively keep the entire package private and use `npm run verify:reference -- --manifest evidence/private/capture/manifest.json`. All artifact paths resolve relative to the manifest directory; absolute paths, traversal outside it, and escaping symlinks reject. Each artifact must be nonempty and at most 2 MiB.
@@ -41,7 +43,7 @@ Canonical answer rows have `{field, answer}`. Answer shapes are `{presence:"miss
 
 Verification commands use exit 0 for complete scoped success, 1 for a detected invalid package or mismatch, and 2 for missing inputs/incomplete coverage. The reports identify channel and case split. Source hashes are integrity checks, not proof of source authenticity.
 
-`reports/reference.json` is the latest comparison; every executed reference run also writes a timestamped `reference-<timestamp>.json` so the first held-out result can be retained. Once a failure informs a fix, relabel that case as regression in a new manifest version and preserve the earlier report/manifest. The tool cannot enforce an unseen human/agent context; independence requires the custodian protocol.
+For default public-package runs, `reports/reference.json` is the latest comparison. Explicit `--manifest` runs use `reports/private/reference.json`. Every executed reference run also writes a timestamped `reference-<timestamp>.json` in the same chosen report directory so the first held-out result can be retained. Once a failure informs a fix, relabel that case as regression in a new manifest version and preserve the earlier report/manifest. The tool cannot enforce an unseen human/agent context; independence requires the custodian protocol.
 
 Release verification also requires actual current-source `reports/engineering.json` and `reports/e2e.json`, with `status:"PASS"`, matching source fingerprints, and explicit counts: `executed > 0`, `passed === executed`, `failed === 0`, `skipped === 0`, and `planned === executed` when a planned count is present. Zero-test reports cannot pass. A manual browser check is not an automated E2E pass. The fingerprint hashes application, build/test scripts, tests, public assets, package/lockfile, and TypeScript configuration; generated reports do not change it.
 

@@ -1,5 +1,5 @@
-import { createHash } from 'node:crypto';
-import { readFile, realpath, mkdir, writeFile } from 'node:fs/promises';
+import { createHash, randomUUID } from 'node:crypto';
+import { lstat, readFile, realpath, mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { resolve, dirname, relative, sep, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { importForm } from '../src/importer.js';
@@ -319,6 +319,48 @@ export async function verifyRelease(root = process.cwd(), manifestPath?: string)
   return report;
 }
 
+async function privateReportDirectory(root: string): Promise<string> {
+  // Build one directory at a time: recursive mkdir would follow a preexisting
+  // reports/private link before we could check where captured values will go.
+  const canonicalRoot = await realpath(root);
+  let directory = canonicalRoot;
+  for (const name of ['reports', 'private']) {
+    directory = resolve(directory, name);
+    try { await mkdir(directory, { mode: 0o700 }); }
+    catch (error) { if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error; }
+    const entry = await lstat(directory);
+    if (entry.isSymbolicLink() || !entry.isDirectory() || await realpath(directory) !== directory) throw new Error('Private report directory is unsafe.');
+    const withinRoot = relative(canonicalRoot, directory);
+    if (withinRoot === '..' || withinRoot.startsWith(`..${sep}`) || isAbsolute(withinRoot)) throw new Error('Private report directory is outside the project.');
+  }
+  return directory;
+}
+
+async function assertReportFile(path: string): Promise<void> {
+  try {
+    const entry = await lstat(path);
+    if (entry.isSymbolicLink() || !entry.isFile()) throw new Error('Private report target is unsafe.');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  }
+}
+
+async function writePrivateReport(root: string, name: string, contents: string): Promise<void> {
+  const directory = await privateReportDirectory(root);
+  const target = resolve(directory, name);
+  await assertReportFile(target);
+  const temporary = resolve(directory, `.report-${randomUUID()}.tmp`);
+  try {
+    // Exclusive creation never follows an existing temporary-file link. Rename
+    // replaces the directory entry instead of opening/truncating its target,
+    // so an intervening destination link cannot redirect the captured values.
+    await writeFile(temporary, contents, { flag: 'wx', mode: 0o600 });
+    if (await privateReportDirectory(root) !== directory) throw new Error('Private report directory changed.');
+    await assertReportFile(target);
+    await rename(temporary, target);
+  } finally { await rm(temporary, { force: true }); }
+}
+
 async function main(): Promise<void> {
   const mode = process.argv[2];
   if (!['readiness', 'reference', 'release'].includes(mode ?? '')) throw new Error('Usage: verify.js readiness|reference|release [--manifest relative-path]');
@@ -327,11 +369,24 @@ async function main(): Promise<void> {
   const manifest = marker === -1 ? undefined : process.argv[marker + 1];
   const root = process.cwd();
   const report = mode === 'readiness' ? (await verifyReadiness(root, manifest)).report : mode === 'reference' ? await verifyReference(root, manifest) : await verifyRelease(root, manifest);
-  await mkdir(resolve(root, 'reports'), { recursive: true });
+  // Explicit manifests may refer to private captures even when their path says
+  // "public". Detailed differences remain private unless the operator reviews
+  // and publishes them separately; the pure verification APIs are unchanged.
+  const privateOutput = marker !== -1;
+  const reportDirectory = privateOutput ? await privateReportDirectory(root) : resolve(root, 'reports');
+  if (privateOutput) await assertReportFile(resolve(reportDirectory, `${mode}.json`));
+  else await mkdir(reportDirectory, { recursive: true });
+  const serialized = JSON.stringify(report, null, 2) + '\n';
   // Timestamped reference runs preserve the first held-out result instead of overwriting it.
-  if (mode === 'reference' && report.counts.executed) await writeFile(resolve(root, 'reports', `reference-${Date.now()}.json`), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
-  await writeFile(resolve(root, 'reports', `${mode}.json`), JSON.stringify(report, null, 2) + '\n');
-  console.log(JSON.stringify(report, null, 2));
+  if (mode === 'reference' && report.counts.executed) await writeFile(resolve(reportDirectory, `reference-${Date.now()}.json`), serialized, { flag: 'wx', ...(privateOutput ? { mode: 0o600 } : {}) });
+  if (privateOutput) await writePrivateReport(root, `${mode}.json`, serialized);
+  else await writeFile(resolve(reportDirectory, `${mode}.json`), serialized);
+  const output = privateOutput ? {
+    mode: report.mode, status: report.status, exitCode: report.exitCode,
+    fingerprint: report.fingerprint, counts: report.counts,
+    issues: report.issues.map(issue => ({ code: issue.code })),
+  } : report;
+  console.log(JSON.stringify(output, null, 2));
   process.exitCode = report.exitCode;
 }
 

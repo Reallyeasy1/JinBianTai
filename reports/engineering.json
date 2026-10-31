@@ -1,43 +1,43 @@
 {
   "schemaVersion": "formlift-engineering/1",
   "status": "PASS",
-  "fingerprint": "1ab083f5380dd2981e7369861587fb2aba796c3ab0293603d8b99e6a49fdc703",
+  "fingerprint": "fe4fed4d06823f571dcf5b23fe29ec71528823195ae211c97200dff88ea86aa8",
   "classification": "SYNTHETIC_ENGINEERING_ONLY",
   "referenceCases": 0,
-  "startedAt": "2026-10-31T05:04:15.992Z",
-  "finishedAt": "2026-10-31T05:04:17.564Z",
+  "startedAt": "2026-10-31T05:33:33.181Z",
+  "finishedAt": "2026-10-31T05:33:38.164Z",
   "runtime": {
     "node": "v24.22.1",
     "platform": "linux",
     "architecture": "x64"
   },
   "counts": {
-    "executed": 41,
-    "passed": 41,
+    "executed": 66,
+    "passed": 66,
     "failed": 0,
     "skipped": 0
   },
   "commands": [
     {
       "command": "npm run typecheck",
-      "startedAt": "2026-10-31T05:04:16.012Z",
-      "finishedAt": "2026-10-31T05:04:16.472Z",
+      "startedAt": "2026-10-31T05:33:33.232Z",
+      "finishedAt": "2026-10-31T05:33:33.818Z",
       "exitCode": 0,
       "signal": null,
       "launched": true
     },
     {
       "command": "npm run build",
-      "startedAt": "2026-10-31T05:04:16.472Z",
-      "finishedAt": "2026-10-31T05:04:17.133Z",
+      "startedAt": "2026-10-31T05:33:33.818Z",
+      "finishedAt": "2026-10-31T05:33:34.724Z",
       "exitCode": 0,
       "signal": null,
       "launched": true
     },
     {
-      "command": "node --test --test-reporter=tap dist/tests/server.test.js dist/tests/unit.test.js dist/tests/verification.test.js",
-      "startedAt": "2026-10-31T05:04:17.149Z",
-      "finishedAt": "2026-10-31T05:04:17.555Z",
+      "command": "node --test --test-reporter=tap dist/tests/evidence-cli.test.js dist/tests/evidence.test.js dist/tests/server.test.js dist/tests/unit.test.js dist/tests/verification.test.js",
+      "startedAt": "2026-10-31T05:33:34.740Z",
+      "finishedAt": "2026-10-31T05:33:38.146Z",
       "exitCode": 0,
       "signal": null,
       "launched": true

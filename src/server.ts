@@ -6,7 +6,7 @@ import { importForm } from './importer.js';
 import { replay } from './engine.js';
 import { serializeResponse } from './response.js';
 import { validPolicy, MAX_EVENTS, type BehaviorPolicy, type FormModel } from './model.js';
-import { jsonlWriter, serializedWriter } from './storage.js';
+import { jsonlWriter, serializedWriter, StorageDamagedError } from './storage.js';
 import { exportOfflineHtml } from './export.js';
 import { readResults, resultsCsv, ResultsError } from './results.js';
 
@@ -120,7 +120,10 @@ export function createApp(options: AppOptions = {}): Server {
         // No await between identity check and queue acceptance; later imports cannot change this snapshot.
         if (active !== snapshot) throw new HttpError(409, 'STALE_FORM', 'The active definition changed.');
         try { await storageOperation(() => persist(record)); }
-        catch { throw new HttpError(500, 'PERSIST_FAILED', 'The response was not confirmed saved. Retry may duplicate a response after an uncertain failure.'); }
+        catch (error) {
+          if (error instanceof StorageDamagedError) throw new HttpError(503, 'STORAGE_DAMAGED', 'The response was not saved. The response log ends with an incomplete line; preserve and review the file before saving more responses.');
+          throw new HttpError(500, 'PERSIST_FAILED', 'The response was not confirmed saved. Retry may duplicate a response after an uncertain failure.');
+        }
         json(res, 201, record); return;
       }
       if (path === '/api/results' || path === '/api/results.csv') {

@@ -80,7 +80,7 @@ Invalid import preserves the previous form. Semantic model/policy identity and e
 
 Local Host/Origin checks, a self-only Content Security Policy, and a fixed asset allowlist support local use. The saved data file is not served. These are not a multi-user authorization system.
 
-JSONL writes are serialized within one process; new files use mode 0600. A failed write does not poison later requests. Append completion is not a power-loss durability guarantee. No idempotency key, deduplication, cross-process lock, encryption, backup, or retention system is included. Retry after an uncertain outcome can duplicate a response. Restart loses the active imported definition; saved JSONL remains.
+JSONL writes are serialized within one process; new files use mode 0600. A failed write does not poison later requests. Before appending, the writer checks that a non-empty log ends with a newline. If an earlier write was interrupted, the save is rejected with 503 `STORAGE_DAMAGED`, no receipt is returned, and the damaged bytes are left unchanged for manual review; saves stay rejected until an operator repairs or archives the file. There is no automatic repair. Append completion is not a power-loss durability guarantee. No idempotency key, deduplication, cross-process lock, encryption, backup, or retention system is included. Retry after an uncertain outcome can duplicate a response. Restart loses the active imported definition; saved JSONL remains.
 
 ## Verification and evidence handoff
 

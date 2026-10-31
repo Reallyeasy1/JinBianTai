@@ -1,0 +1,17 @@
+# Private capture material and implementation-session state
+/evidence/private/
+/.formlift/
+/data/
+/reports/private/
+CLAUDE.local.md
+.env
+.env.*
+!.env.example
+
+# Reproducible build outputs and local tooling
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+*.log

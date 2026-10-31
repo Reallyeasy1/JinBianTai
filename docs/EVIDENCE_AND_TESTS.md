@@ -2,6 +2,8 @@
 
 Status: planned tests only. No reference capture, implementation, test execution, or passing result is supplied by this change.
 
+[ACCEPTANCE.md](ACCEPTANCE.md) defines the current command/exit contract and automation gates; [DESIGN.md](DESIGN.md) defines the concrete local interfaces. This document remains the reference experiment and provenance protocol. The default reference-mode gate requires both restoration and response-content observations; a narrower UI-only investigation needs an explicit scope change.
+
 ## 1. Evidence labels and channels
 
 Every behavioral statement uses DOCUMENTED, OBSERVED, INFERRED, or UNVERIFIED. Synthetic fixtures are labelled SYNTHETIC and can test our implementation; they cannot establish Typeform behavior.
@@ -89,3 +91,4 @@ Use a browser automation smoke test if tooling is already available. If setup co
 - At 180 minutes: deliver the working subset, sanitized evidence, exact results, license/notices, and limitations. If it fails, report failure.
 
 Release report template fields: implementation commit; form/fixture hashes; source capture date/channel; hypothesis; evidence-derived policy; actual development/holdout counts; PASS/FAIL/UNVERIFIED by channel; normalization; known unsupported inputs; clean-start result; commands executed; measured runtime/build costs; public release and license status. Leave unknown fields explicitly unknown until measured.
+

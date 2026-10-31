@@ -1,23 +1,32 @@
 # FormLift
 
-An experimental, local replacement for a small Typeform questionnaire, focused on preserving observed branching and backtracking behavior.
+An experimental local replacement for a small Typeform questionnaire, focused on preserving observed branching and backtracking behavior.
 
-**Status: planning only.** There is no application implementation, source evidence, passing test result, benchmark, or release yet. The proposed implementation budget is 180 minutes with Claude Code and the operator's available Fable model.
+**Status: design and agent handoff ready; application not implemented.** No genuine source captures, measured compatibility results, application tests, or code release are included yet. The planned implementation budget is 180 minutes using the available Fable model in Claude Code.
 
-## Planning documents
+## Start here
 
-- [SDLC, architecture, backlog, agent ownership, and 180-minute schedule](docs/PLAN.md)
-- [Reference experiments, test matrix, acceptance gates, and evidence rules](docs/EVIDENCE_AND_TESTS.md)
-- [Claude Code execution handoff](CLAUDE.md)
+Read [the launch checklist](docs/START_HERE.md), then open Claude Code at this repository and paste [the single-launch work order](docs/PROMPT.md). It directs the lead agent through implementation, independent testing, repair, and packaging without routine phase approvals.
 
-## First implementation milestone
+The repository includes two project subagent definitions: `formlift-evidence` for read-only evidence review and `formlift-qa` for assigned tests and reports. The lead owns application code. A sequential fallback is specified when subagents are unavailable.
 
-Obtain a genuine owned form definition and capture what happens when a respondent answers Budget, goes back, changes the branch, and optionally returns. Determine answer restoration separately from submission inclusion. Then build one importer-to-engine replay that matches the captured behavior.
+**An uninterrupted reference-mode run needs a genuine owned form definition and source observations.** Missing evidence produces BLOCKED, not fabricated results. Account/login access and denied tool permissions cannot be solved by a prompt. No completion time is guaranteed.
 
-A form renderer alone does not establish reverse engineering. If real source evidence is unavailable at the 20-minute gate, report that blocker or narrow the claim. Do not invent reference behavior.
+## Implementation documents
 
-## Proposed scope
+| Document | Purpose |
+| --- | --- |
+| [Technical design](docs/DESIGN.md) | Modules, TypeScript contracts, state transitions, API, storage, UI, and failure behavior |
+| [Agent workflow](docs/AGENT_WORKFLOW.md) | Task graph, ownership, checkpoint state, three-hour schedule, recovery, and deliverables |
+| [Acceptance contract](docs/ACCEPTANCE.md) | Readiness, required tests, planned commands, result/exit semantics, and release gates |
+| [Evidence protocol](docs/EVIDENCE_AND_TESTS.md) | Actual source experiments, provenance, development/holdout split, and normalization |
+| [Initial SDLC plan](docs/PLAN.md) | Problem, requirements, scope, rationale, and initial schedule |
+| [Repository instructions](CLAUDE.md) | Concise operating rules and document precedence |
 
-Three to six questions, short text/number/single choice, one captured predicate, Back/Next, one ending, local response persistence, and a comparison report. A second ending is conditional on a real fixture and available time. No builder, accounts, database, deployment, or runtime LLM calls.
+## Scope and first milestone
 
-Implementation and application testing belong to the next stage. The planning change contains documentation only; the repository does not yet include a code license or runnable commands.
+Three to six questions; short text, number, single choice; one captured predicate; Back/Next; one ending; local response persistence; comparison report. A second ending is optional only with a real fixture and spare time. No builder, accounts, database, cloud deployment, or runtime LLM calls.
+
+The first result must be one genuine importer-to-engine replay matching an observed changed-branch history. Determine restoration of an abandoned answer separately from its presence in a response. Public schema implementation alone is not the behavioral investigation.
+
+All npm commands mentioned in the design are requirements for the future implementation agent to create and verify. They are not available in this documentation-only repository. The workflow ends with reviewable implementation changes and a draft PR where access permits; it does not automatically merge or deploy the application.

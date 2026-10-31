@@ -3,11 +3,11 @@
   "status": "PASS",
   "classification": "SYNTHETIC_ENGINEERING_ONLY",
   "referenceCases": 0,
-  "startedAt": "2026-10-31T06:19:51.394Z",
-  "finishedAt": "2026-10-31T06:19:51.828Z",
-  "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
-  "buildFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
-  "finishedFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+  "startedAt": "2026-10-31T07:53:34.900Z",
+  "finishedAt": "2026-10-31T07:53:35.196Z",
+  "fingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+  "buildFingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+  "finishedFingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
   "definitionSha256": "16f7be9ed54a83f69dd339adc5baa9b90b4238aabbeef703cfc7bfdb6102fec6",
   "command": "node dist/scripts/benchmark.js",
   "parameters": {
@@ -19,8 +19,8 @@
     "node": "v24.22.1",
     "platform": "linux",
     "architecture": "x64",
-    "cpuModel": "INTEL(R) XEON(R) PLATINUM 8573C",
-    "logicalCpuCount": 9
+    "cpuModel": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "logicalCpuCount": 4
   },
   "policyId": "engineering-retain-active-v1",
   "cases": [
@@ -33,12 +33,12 @@
     "executed": 1000,
     "successful": 1000,
     "failed": 0,
-    "elapsedMs": 40.64354,
-    "successfulOperationsPerSecond": 24604.156036,
+    "elapsedMs": 22.063956,
+    "successfulOperationsPerSecond": 45322.78799,
     "latencyMs": {
       "samples": 1000,
-      "p50": 0.013241,
-      "p95": 0.076275,
+      "p50": 0.012538,
+      "p95": 0.033423,
       "percentileMethod": "nearest-rank"
     },
     "boundary": "Replay plus serialization latency; elapsed/throughput also include synthetic correctness checks and loop overhead. No HTTP or persistence."
@@ -48,12 +48,12 @@
     "executed": 100,
     "successful": 100,
     "failed": 0,
-    "elapsedMs": 299.794511,
-    "successfulOperationsPerSecond": 333.561811,
+    "elapsedMs": 209.821911,
+    "successfulOperationsPerSecond": 476.594649,
     "latencyMs": {
       "samples": 100,
-      "p50": 2.496402,
-      "p95": 5.093788,
+      "p50": 1.860453,
+      "p95": 3.165884,
       "percentileMethod": "nearest-rank"
     },
     "status201": 100,
@@ -63,7 +63,7 @@
     "records": 100,
     "verifiedRecords": 100,
     "bytes": 86744,
-    "readbackMs": 1.601084
+    "readbackMs": 1.365911
   },
   "errors": [],
   "limitations": [

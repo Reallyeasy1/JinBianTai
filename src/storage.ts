@@ -1,4 +1,4 @@
-import { appendFile, mkdir } from 'node:fs/promises';
+import { appendFile, mkdir, open } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
 export function serializedWriter(write: (record: unknown) => Promise<void>): (record: unknown) => Promise<void> {
@@ -8,6 +8,13 @@ export function serializedWriter(write: (record: unknown) => Promise<void>): (re
     tail = task.catch(() => undefined);
     return task;
   };
+}
+
+/** Create the data directory and touch the file so an unwritable location fails at startup, not on the first respondent. */
+export async function prepareStorage(path: string): Promise<void> {
+  await mkdir(dirname(path), { recursive: true });
+  const handle = await open(path, 'a', 0o600);
+  await handle.close();
 }
 
 export function jsonlWriter(path: string): (record: unknown) => Promise<void> {

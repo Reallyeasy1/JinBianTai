@@ -1,31 +1,57 @@
 {
   "schemaVersion": "formlift-reproducibility/1",
   "status": "PASS",
+  "fingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
   "classification": "SYNTHETIC_ENGINEERING_ONLY",
   "referenceCases": 0,
-  "startedAt": "2026-10-31T05:33:32.965709+00:00",
+  "startedAt": "2026-10-31T07:53:03.049Z",
+  "finishedAt": "2026-10-31T07:53:07.399Z",
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "architecture": "x64"
+  },
   "commands": [
     {
-      "command": "npm ci",
-      "exitCode": 0
+      "command": "npm ci --no-audit --no-fund",
+      "startedAt": "2026-10-31T07:53:03.087Z",
+      "finishedAt": "2026-10-31T07:53:03.943Z",
+      "exitCode": 0,
+      "signal": null,
+      "launched": true
     },
     {
       "command": "npm test",
-      "exitCode": 0
+      "startedAt": "2026-10-31T07:53:03.943Z",
+      "finishedAt": "2026-10-31T07:53:06.760Z",
+      "exitCode": 0,
+      "signal": null,
+      "launched": true
     },
     {
       "command": "npm start",
-      "startup": "PASS",
-      "smoke": "GET status/page; POST import/response; actual JSONL readback",
-      "referenceStatus": "BLOCKED"
+      "startedAt": "2026-10-31T07:53:06.767Z",
+      "finishedAt": "2026-10-31T07:53:07.048Z",
+      "exitCode": 0,
+      "signal": null,
+      "launched": true
     }
   ],
-  "fingerprint": "fe4fed4d06823f571dcf5b23fe29ec71528823195ae211c97200dff88ea86aa8",
+  "smoke": {
+    "startup": "PASS",
+    "steps": [
+      "GET /api/status",
+      "GET /",
+      "POST /api/import",
+      "POST /api/responses",
+      "JSONL readback"
+    ],
+    "referenceStatus": "BLOCKED"
+  },
   "engineeringCounts": {
-    "executed": 66,
-    "passed": 66,
+    "executed": 91,
+    "passed": 91,
     "failed": 0,
     "skipped": 0
-  },
-  "finishedAt": "2026-10-31T05:33:40.024178+00:00"
+  }
 }

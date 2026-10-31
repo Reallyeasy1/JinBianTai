@@ -14,7 +14,7 @@ Status: implementation runbook with one recorded run. Sections 1–10 are the or
 | Release gate | `verify:readiness`, `verify:reference`, `verify:release` BLOCKED with exit 2; only issue `MISSING_EVIDENCE` |
 | Disclosed deviation | Engineering implementation continued after the failed evidence gate under the user's implementation request; it does not satisfy the minute-20, minute-65, or release gates |
 
-These values describe the tested revision. Any later change to application code, tests, fixtures, scripts, package files, or TypeScript configuration changes the fingerprint and invalidates the reports until the commands are re-run.
+These values describe the original run only. The later merged phases (evidence intake and CI, the hackathon and product upgrades, and the continuation review) record their own fingerprints and counts in `IMPLEMENTATION.md`, and `ROADMAP.md` carries the current status. Any later change to application code, tests, fixtures, scripts, package files, or TypeScript configuration changes the fingerprint and invalidates the reports until the commands are re-run.
 
 ## 1. What “one shot” means
 
@@ -137,7 +137,7 @@ These commands are implemented. Use their actual reports and exits; zero genuine
 | 6 | `npm test` | Unit, parameterization, and HTTP/storage integration tests; genuine and synthetic fixtures labelled |
 | 7 | `npm run verify:reference` | Channel-specific comparisons against genuine captured expectations; zero evidence is blocked |
 | 8 | `npm run test:e2e` | Browser upload → branch → Back → submit → persisted result; only if browser tooling is available |
-| 9 | Clean start and `npm start` | Fresh installation/build/start works; replay the demo fixture without a source token |
+| 9 | `npm run verify:reproducibility` | Fresh copy, `npm ci`, `npm test`, `npm start`, one saved response read back; writes `reports/reproducibility.json` |
 | 10 | `npm run verify:release` | Aggregate actual reports and release files; cannot manufacture missing test evidence |
 
 The readiness, reference, and release scripts use exit 0 for all required checks passing, 1 for actual mismatch/error, and 2 for missing prerequisite or incomplete required verification. Standard build/test commands retain their normal nonzero failure behavior. The report records the status as well as the exit code.
@@ -230,7 +230,19 @@ flowchart TD
 
 When the continuation is a timed run, apply the section 6 clock: C1 by minute 20, C2 by minute 35, C3 complete with one development case matching by minute 65 and all development cases executed by minute 100, C4 by minute 140, C5 and feature freeze by minute 155, packaging to minute 180. Checkpoints are decisions, not idle time; finishing early is allowed.
 
-### 11.4 Reporting a continuation
+### 11.4 Saved workflow script
+
+`.claude/workflows/formlift-continuation.js` encodes C0, C1, C3, and a read-only engineering review as a Claude Code workflow script. It is an orchestration convenience, not a new framework: the roles, ownership, and gates are the ones above.
+
+- **What it runs.** C0 inspection (git state, report fingerprints against the current source, toolchain); C1 as a read-only `formlift-evidence` review followed by `formlift-qa` running `verify:readiness`; C3 as `formlift-qa` running `verify:reference` on development cases only when the gate passed; then four read-only review lenses (engine, server, client, tooling) whose findings each pass one adversarial refuter. It returns the gate status, the reference result if any, and the confirmed findings.
+- **What it never does.** No workflow agent edits `src/`, `public/`, `scripts/`, package files, docs, or tests, and none relabels evidence or expected data. Confirmed findings go to the lead, who fixes, re-runs the commands in section 7, and commits. Held-out evaluation (C4) is not automated; QA runs it once against the frozen revision the lead records.
+- **Concurrency.** At most two subagents run at a time, so the lead plus workers stay within the three-agent limit in section 3.
+- **Arguments.** `startedAt` (ISO timestamp, required because scripts cannot read the clock), optional `manifest` (repository-relative path to a private manifest), `skipEngineering`, and `maxFindingsPerLens` (default 6).
+- **Running it.** From a Claude Code session at the repository root, ask for the workflow by name, for example: "Run the formlift-continuation workflow with startedAt set to now." The lead records the continuation run in `.formlift/state.json` first (section 11.1) and keeps that file out of git.
+
+A workflow result with gate status `BLOCKED_EVIDENCE` is the expected outcome while no genuine captures exist. The review findings that follow are ordinary engineering input and do not change that status.
+
+### 11.5 Reporting a continuation
 
 The final report contains everything listed in section 8 plus: the recorded run ID and outcome it follows; the continuation run ID, start, deadline, and disclosed preparation; revision and fingerprint before and after; per-channel coverage with UNVERIFIED channels named; the path of the first held-out report; every regression relabel with its reason. Development pass counts, held-out pass counts, and synthetic engineering test counts are three separate totals and are never summed.
 

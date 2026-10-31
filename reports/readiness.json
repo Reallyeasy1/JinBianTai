@@ -3,8 +3,14 @@
   "mode": "readiness",
   "status": "BLOCKED",
   "exitCode": 2,
-  "generatedAt": "2026-10-31T06:20:21.220Z",
-  "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+  "startedAt": "2026-10-31T07:53:35.986Z",
+  "finishedAt": "2026-10-31T07:53:35.986Z",
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "fingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
   "evidenceStatus": "BLOCKED",
   "issues": [
     {
@@ -14,12 +20,16 @@
     }
   ],
   "counts": {
+    "planned": 0,
     "captured": 0,
     "eligible": 0,
     "executed": 0,
     "passed": 0,
     "failed": 0,
-    "unverified": 0
+    "unverified": 0,
+    "notApplicable": 0
   },
+  "channels": {},
+  "cases": [],
   "provenanceNotice": "Artifact hashes and declared provenance are checked. This tool cannot authenticate who captured the source or independently prove the capture is genuine. No source behavior is inferred from synthetic fixtures."
 }

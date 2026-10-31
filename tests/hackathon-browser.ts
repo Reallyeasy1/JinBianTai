@@ -270,6 +270,7 @@ try {
   const report = {
     schemaVersion: 'formlift-hackathon-browser/1', status, classification: 'SYNTHETIC_ENGINEERING_ONLY', referenceCases: 0,
     startedAt, finishedAt: new Date().toISOString(), fingerprint, buildFingerprint: buildFingerprint ?? null, finishedFingerprint: finishedFingerprint ?? null,
+    runtime: { node: process.version, platform: process.platform, architecture: process.arch },
     browser: { engine: 'chromium', version: browserVersion ?? null, executable: process.env.CHROMIUM_EXECUTABLE_PATH ? 'environment-override' : 'playwright-default' },
     counts: { planned, executed: journeys.length, passed: journeys.filter(item => item.status === 'PASS').length,
       failed: journeys.filter(item => item.status === 'FAIL').length, skipped: Math.max(0, planned - journeys.length), infrastructureFailures: checks.length - journeys.length },

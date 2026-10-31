@@ -264,7 +264,8 @@ try {
   const journeys = checks.filter(check => !['HARNESS', 'BUILD-INTEGRITY'].includes(check.id));
   const report = { schemaVersion: 'formlift-product-browser/1', status, classification: 'SYNTHETIC_ENGINEERING_ONLY', referenceCases: 0,
     fingerprint, buildFingerprint: buildFingerprint ?? null, finishedFingerprint: finishedFingerprint ?? null,
-    startedAt, finishedAt: new Date().toISOString(), browser: { engine: 'chromium', version: browserVersion ?? null,
+    startedAt, finishedAt: new Date().toISOString(), runtime: { node: process.version, platform: process.platform, architecture: process.arch },
+    browser: { engine: 'chromium', version: browserVersion ?? null,
       executable: process.env.CHROMIUM_EXECUTABLE_PATH ? 'environment-override' : 'playwright-default' },
     counts: { planned, executed: journeys.length, passed: journeys.filter(check => check.status === 'PASS').length,
       failed: journeys.filter(check => check.status === 'FAIL').length, skipped: Math.max(0, planned - journeys.length), infrastructureFailures: checks.length - journeys.length },

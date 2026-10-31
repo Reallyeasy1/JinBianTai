@@ -142,7 +142,29 @@ test('relabelled copies of a direct-No run cannot satisfy four experimental purp
     assert.ok(report.issues.some(issue => issue.code === 'MISSING_COVERAGE' && issue.path === 'MOCK-0'));
     assert.ok(report.issues.some(issue => issue.code === 'MISSING_COVERAGE' && issue.path === 'MOCK-2'));
     assert.ok(report.issues.some(issue => issue.code === 'MISSING_COVERAGE' && issue.path === 'MOCK-3'));
-    assert.equal((await verifyReference(root, 'manifest.json')).counts.executed, 0);
+    // Validated cases still replay under incomplete coverage, so a genuine mismatch is reported as FAIL, not hidden as BLOCKED.
+    const compared = await verifyReference(root, 'manifest.json');
+    assert.equal(compared.counts.executed, 4);
+    assert.equal(compared.exitCode, 1);
+    assert.ok(compared.issues.some(issue => issue.code === 'MISSING_COVERAGE'));
+    assert.ok(compared.issues.some(issue => issue.code === 'REFERENCE_MISMATCH'));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('reports carry per-case rows, channel coverage, planned and not-applicable counts', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'formlift-report-shape-'));
+  try {
+    const manifest = await mockPackage(root) as Record<string, unknown>;
+    (manifest as { plannedCases?: number }).plannedCases = 10;
+    (manifest.cases as unknown[]).push({ id: 'MOCK-NA', split: 'development', purpose: 'optional-empty', notApplicable: 'The captured form has no optional field.' });
+    (manifest.cases as unknown[]).push({ id: 'MOCK-BAD', split: 'development', purpose: 'direct-no', capturedAt: '2026-01-01T00:00:00Z', channel: 'wire', events: structuredClone(directNo), capture: { path: 'missing.txt', sha256: hash('x') }, expected: { path: 'expected-1.json', sha256: hash('y') } });
+    await writeFile(join(root, 'manifest.json'), JSON.stringify(manifest));
+    const report = await verifyReference(root, 'manifest.json');
+    assert.deepEqual(report.counts, { planned: 10, captured: 5, eligible: 4, executed: 4, passed: 4, failed: 0, unverified: 1, notApplicable: 1 });
+    assert.deepEqual(report.channels, { wire: { eligible: 3, executed: 3, passed: 3, failed: 0 }, ui: { eligible: 1, executed: 1, passed: 1, failed: 0 } });
+    assert.deepEqual(report.cases.map(row => [row.id, row.status]), [['MOCK-0', 'PASS'], ['MOCK-1', 'PASS'], ['MOCK-2', 'PASS'], ['MOCK-3', 'PASS'], ['MOCK-NA', 'NOT_APPLICABLE'], ['MOCK-BAD', 'UNVERIFIED']]);
+    assert.equal(report.status, 'BLOCKED', 'An unverified captured case keeps the package incomplete');
+    assert.ok(report.startedAt <= report.finishedAt && typeof report.runtime.node === 'string');
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
@@ -197,18 +219,33 @@ test('release rejects PASS reports with zero or inconsistent executed counts', a
     for (const path of ['README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'package-lock.json']) await writeFile(join(root, path), 'test-only release artifact');
     await mkdir(join(root, 'reports'));
     const fingerprint = await sourceFingerprint(root);
-    await writeFile(join(root, 'reports/engineering.json'), JSON.stringify({ status: 'PASS', fingerprint, counts: { executed: 0, passed: 0, failed: 0, skipped: 0 } }));
-    await writeFile(join(root, 'reports/e2e.json'), JSON.stringify({ status: 'PASS', fingerprint, counts: { executed: 1, passed: 0, failed: 0, skipped: 0 } }));
+    const runtime = { node: process.version, platform: process.platform, architecture: process.arch };
+    await writeFile(join(root, 'reports/engineering.json'), JSON.stringify({ status: 'PASS', fingerprint, runtime, counts: { executed: 0, passed: 0, failed: 0, skipped: 0 } }));
+    await writeFile(join(root, 'reports/e2e.json'), JSON.stringify({ status: 'PASS', fingerprint, runtime, counts: { executed: 1, passed: 0, failed: 0, skipped: 0 } }));
     const report = await verifyRelease(root, 'manifest.json');
     assert.equal(report.exitCode, 2);
     assert.ok(report.issues.some(issue => issue.code === 'INCOMPLETE_REPORT' && issue.message.startsWith('engineering')));
     assert.ok(report.issues.some(issue => issue.code === 'INCOMPLETE_REPORT' && issue.message.startsWith('e2e')));
     assert.ok(report.issues.some(issue => issue.code === 'MISSING_REPORT' && issue.message.startsWith('hackathon-browser')));
-    await writeFile(join(root, 'reports/engineering.json'), JSON.stringify({ status: 'PASS', fingerprint, counts: { executed: 1, passed: 1, failed: 0, skipped: 2 } }));
-    await writeFile(join(root, 'reports/e2e.json'), JSON.stringify({ status: 'PASS', fingerprint, counts: { planned: 6, executed: 1, passed: 1, failed: 0, skipped: 0 } }));
+    assert.ok(report.issues.some(issue => issue.code === 'MISSING_REPORT' && issue.message.startsWith('reproducibility')));
+    await writeFile(join(root, 'reports/engineering.json'), JSON.stringify({ status: 'PASS', fingerprint, runtime, counts: { executed: 1, passed: 1, failed: 0, skipped: 2 } }));
+    await writeFile(join(root, 'reports/e2e.json'), JSON.stringify({ status: 'PASS', fingerprint, runtime, counts: { planned: 6, executed: 1, passed: 1, failed: 0, skipped: 0 } }));
     const incomplete = await verifyRelease(root, 'manifest.json');
     assert.equal(incomplete.exitCode, 2);
     assert.equal(incomplete.issues.filter(issue => issue.code === 'INCOMPLETE_REPORT').length, 2);
+    // Consistent reports still fail the release when they were produced on another Node major or hand-written without launched commands.
+    const good = { executed: 1, passed: 1, failed: 0, skipped: 0 };
+    await writeFile(join(root, 'reports/engineering.json'), JSON.stringify({ status: 'PASS', fingerprint, runtime: { ...runtime, node: 'v1.0.0' }, counts: good }));
+    await writeFile(join(root, 'reports/e2e.json'), JSON.stringify({ status: 'PASS', fingerprint, runtime, counts: { planned: 1, ...good } }));
+    await writeFile(join(root, 'reports/reproducibility.json'), JSON.stringify({ status: 'PASS', fingerprint, runtime, commands: [{ command: 'npm ci', exitCode: 0 }] }));
+    const stale = await verifyRelease(root, 'manifest.json');
+    assert.ok(stale.issues.some(issue => issue.code === 'STALE_REPORT' && issue.message.startsWith('engineering')));
+    assert.ok(stale.issues.some(issue => issue.code === 'INCOMPLETE_REPORT' && issue.message.startsWith('reproducibility')));
+    await writeFile(join(root, 'reports/engineering.json'), JSON.stringify({ status: 'PASS', fingerprint, runtime, counts: good }));
+    await writeFile(join(root, 'reports/reproducibility.json'), JSON.stringify({ status: 'PASS', fingerprint, runtime, commands: ['npm ci', 'npm test', 'npm start'].map(command => ({ command, launched: true, exitCode: 0 })) }));
+    for (const name of ['hackathon-browser', 'product-browser']) await writeFile(join(root, `reports/${name}.json`), JSON.stringify({ status: 'PASS', fingerprint, runtime, counts: { planned: 1, ...good } }));
+    const accepted = await verifyRelease(root, 'manifest.json');
+    assert.equal(accepted.exitCode, 0, JSON.stringify(accepted.issues));
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

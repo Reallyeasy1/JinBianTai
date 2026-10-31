@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test, type TestContext } from 'node:test';
@@ -96,6 +97,23 @@ test('API-04: oversized definition and excessive events reject', async t => {
   const { post, imported } = await app(t); const form = await imported();
   assert.equal((await post('/api/import', { title: 'x'.repeat(256 * 1024) })).status, 413);
   assert.equal((await post('/api/responses', { formHash: form.formHash, events: Array.from({ length: 201 }, () => ({ type: 'back' })) })).status, 413);
+});
+
+test('API-04: the artifact hash covers the exact accepted bytes and invalid UTF-8 is rejected', async t => {
+  const { base, post, dataFile } = await app(t);
+  const raw = Buffer.from(JSON.stringify(fixture()), 'utf8');
+  const imported = await fetch(`${base}/api/import`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: raw });
+  assert.equal(imported.status, 200);
+  const { formHash } = await imported.json();
+  const saved = await post('/api/responses', { formHash, events });
+  assert.equal(saved.status, 201);
+  const record = JSON.parse((await readFile(dataFile, 'utf8')).trim().split('\n').pop()!);
+  assert.equal(record.artifactHash, createHash('sha256').update(raw).digest('hex'));
+  const broken = Buffer.concat([raw.subarray(0, 12), Buffer.from([0xff]), raw.subarray(12)]);
+  const rejected = await fetch(`${base}/api/import`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: broken });
+  assert.equal(rejected.status, 400);
+  assert.equal((await rejected.json()).error.code, 'INVALID_ENCODING');
+  assert.equal((await post('/api/responses', { formHash, events })).status, 201, 'A rejected import leaves the active form usable');
 });
 
 test('API-04: JSON syntax, content type, unknown route, and methods are bounded errors', async t => {

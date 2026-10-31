@@ -166,12 +166,31 @@ test('ENG-04: zero is a number, while optional untouched and entered empty text 
 
 test('ENG-04: numeric bounds and safe-integer contract reject invalid values', () => {
   const form = model();
-  for (const invalid of ['', 'NaN', 'Infinity', 'abc', '-1', '10001', '1.5', '9007199254740992']) {
+  for (const invalid of ['', 'NaN', 'Infinity', 'abc', '-1', '10001', '1.5', '9007199254740992', '-0', '1.0', '0.0', '10000.00', '1e3', '0x10', ' 5']) {
     const ready = run([set('request', 'yes'), next, set('budget', invalid)], form);
     const result = transition(form, ready, next, policy);
     assert.equal(result.ok, false, `Expected rejection for ${JSON.stringify(invalid)}`);
     assert.deepEqual(result.state, ready, 'Rejected Next must preserve visible input and cursor');
   }
+});
+
+test('IMP-03: fields and endings that no route reaches are rejected rather than dropped', () => {
+  const unreachable = fixture();
+  unreachable.logic[0].actions.push({ action: 'jump', details: { to: { type: 'thankyou', value: 'default' } }, condition: { op: 'always', vars: [] } });
+  const result = importForm(unreachable);
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.ok(result.errors.some(issue => issue.code === 'UNREACHABLE_FIELD' && issue.path === '$.fields[1]'));
+  const customEnding = fixture();
+  customEnding.thankyou_screens = [{ ref: 'tys_custom', title: 'Imported thanks' }];
+  const ending = importForm(customEnding);
+  assert.equal(ending.ok, false);
+  if (!ending.ok) assert.ok(ending.errors.some(issue => issue.code === 'UNREACHABLE_ENDING' && issue.path === '$.thankyou_screens[0]'));
+  const targeted = fixture();
+  targeted.thankyou_screens = [{ ref: 'default', title: 'Thank you' }, { ref: 'tys_quote', title: 'Quote requested' }];
+  targeted.logic[0].actions[0].details.to = { type: 'thankyou', value: 'tys_quote' };
+  const form = model(targeted);
+  assert.deepEqual(form.endings.map(e => e.ref), ['default', 'tys_quote']);
+  assert.equal(run([set('request', 'no'), next], form).current.ref, 'tys_quote');
 });
 
 test('ENG-04: an invalid field can be left with Back without being committed', () => {

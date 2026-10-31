@@ -51,9 +51,12 @@ function parseInput(field: Field, state: EngineState): { ok: true; value?: Scala
     if (!field.choices.some(c => c.ref === raw)) return invalid('INVALID_CHOICE', 'Select a supported choice.');
     return { ok: true, value: raw };
   }
-  // Deliberately strict local numeric grammar: no whitespace coercion, hex, or infinity.
-  if (!/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(raw)) return invalid('INVALID_NUMBER', 'Enter a valid decimal number.');
+  // Deliberately strict local numeric grammar: no whitespace coercion, hex, exponent, infinity,
+  // decimal notation for whole-number fields, or signed zero. The lexeme is never normalised.
+  const grammar = field.integerOnly ? /^-?(?:0|[1-9]\d*)$/ : /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/;
+  if (!grammar.test(raw)) return invalid('INVALID_NUMBER', field.integerOnly ? 'Enter a whole number without decimals.' : 'Enter a valid decimal number.');
   const n = Number(raw);
+  if (Object.is(n, -0)) return invalid('INVALID_NUMBER', 'Enter zero without a sign.');
   if (!Number.isFinite(n) || (field.integerOnly && !Number.isSafeInteger(n))) return invalid('INVALID_NUMBER', 'Enter a safe whole number.');
   if (field.min !== undefined && n < field.min) return invalid('NUMBER_TOO_SMALL', `Enter at least ${field.min}.`);
   if (field.max !== undefined && n > field.max) return invalid('NUMBER_TOO_LARGE', `Enter at most ${field.max}.`);

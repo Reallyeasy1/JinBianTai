@@ -47,6 +47,8 @@ The implementation run is already recorded (start, deadline, revision, and outco
 
 Omit the new budget sentence if you are resuming inside the recorded run before its deadline; the agent then rebuilds the ignored state file from the published values and works against the original deadline.
 
+A saved workflow script, `.claude/workflows/formlift-continuation.js`, automates C0, C1, C3, and a read-only engineering review with the two named workers; see AGENT_WORKFLOW.md section 11.4. Asking the agent to "run the formlift-continuation workflow" is equivalent to the first half of the instruction above. It still ends BLOCKED without genuine evidence.
+
 ## What the agent reads and does
 
 1. [CLAUDE.md](../CLAUDE.md): short repository rules and document precedence.

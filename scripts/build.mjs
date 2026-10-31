@@ -15,6 +15,7 @@ await build({ entryPoints: ['src/client.ts'], bundle: true, outfile: 'dist/publi
 await build({ entryPoints: ['src/offline.ts'], bundle: true, outfile: 'dist/offline.js', platform: 'browser', target: 'es2022', format: 'iife', minify: true });
 await mkdir('dist/scripts', { recursive: true });
 await copyFile('scripts/fingerprint.mjs', 'dist/scripts/fingerprint.mjs');
+await copyFile('scripts/command.mjs', 'dist/scripts/command.mjs');
 if (await sourceFingerprint() !== fingerprint) throw new Error('Source changed during build. Rebuild from stable sources.');
 await writeFile('dist/build-info.json', JSON.stringify({ schemaVersion: 'formlift-build/1', fingerprint }, null, 2) + '\n');
 console.log('Built local server and browser assets. No source evidence was inferred.');

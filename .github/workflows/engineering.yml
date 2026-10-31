@@ -28,7 +28,7 @@ jobs:
           node-version: '24.22.1'
           package-manager-cache: false
       - name: Remove committed reports before this run
-        run: rm -f reports/engineering.json reports/e2e.json
+        run: rm -f reports/engineering.json reports/e2e.json reports/hackathon-browser.json reports/product-browser.json reports/benchmark.json
       - name: Install locked dependencies
         run: npm ci
       - name: Typecheck, build, and test engineering behavior
@@ -37,6 +37,12 @@ jobs:
         run: npx playwright install --with-deps chromium --only-shell
       - name: Run actual browser journeys
         run: npm run test:e2e
+      - name: Verify branch inspector and actual standalone offline files
+        run: node dist/tests/hackathon-browser.js
+      - name: Verify response inbox, CSV, navigation, and route progress
+        run: node dist/tests/product-browser.js
+      - name: Measure synthetic replay and persisted local responses
+        run: node dist/scripts/benchmark.js
       - name: Upload only this run's engineering reports
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -45,6 +51,9 @@ jobs:
           path: |
             reports/engineering.json
             reports/e2e.json
+            reports/hackathon-browser.json
+            reports/product-browser.json
+            reports/benchmark.json
           if-no-files-found: warn
           retention-days: 7
           include-hidden-files: false

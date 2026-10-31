@@ -203,6 +203,7 @@ test('release rejects PASS reports with zero or inconsistent executed counts', a
     assert.equal(report.exitCode, 2);
     assert.ok(report.issues.some(issue => issue.code === 'INCOMPLETE_REPORT' && issue.message.startsWith('engineering')));
     assert.ok(report.issues.some(issue => issue.code === 'INCOMPLETE_REPORT' && issue.message.startsWith('e2e')));
+    assert.ok(report.issues.some(issue => issue.code === 'MISSING_REPORT' && issue.message.startsWith('hackathon-browser')));
     await writeFile(join(root, 'reports/engineering.json'), JSON.stringify({ status: 'PASS', fingerprint, counts: { executed: 1, passed: 1, failed: 0, skipped: 2 } }));
     await writeFile(join(root, 'reports/e2e.json'), JSON.stringify({ status: 'PASS', fingerprint, counts: { planned: 6, executed: 1, passed: 1, failed: 0, skipped: 0 } }));
     const incomplete = await verifyRelease(root, 'manifest.json');

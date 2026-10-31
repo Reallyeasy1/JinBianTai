@@ -2,13 +2,13 @@
 
 `.github/workflows/engineering.yml` runs on pull requests and pushes to `main`. It verifies local software behavior with synthetic fixtures. A green run is **not Typeform compatibility evidence**.
 
-The workflow installs Node 24.22.1 and dependencies from the lockfile, runs `npm test` (including typecheck/build), installs the Chromium revision selected by the pinned Playwright package, and executes `npm run test:e2e`. Browser/system-dependency installation failures fail the job; they are not treated as test success.
+The workflow installs Node 24.22.1 and dependencies from the lockfile, runs `npm test` (including typecheck/build), installs the Chromium revision selected by the pinned Playwright package, and executes `npm run test:e2e`. It then runs `node dist/tests/hackathon-browser.js` for downloaded-file offline operation, inspection, replay and costs, `node dist/tests/product-browser.js` for inbox/CSV/task navigation, followed by `node dist/scripts/benchmark.js` for separate replay and persisted-response measurements. Browser/system-dependency installation failures fail the job; they are not treated as test success.
 
 The job uses the read-only `contents` permission, does not persist checkout credentials, and does not use `pull_request_target`. No Typeform credentials or repository secrets are needed. Automatic package-manager caching is disabled. Concurrent obsolete runs for the same ref are cancelled.
 
 ## Reports and boundaries
 
-Only `reports/engineering.json` and `reports/e2e.json` are uploaded, for seven days. The workflow removes committed copies before execution so a setup failure cannot upload old passing reports as this run's results. A failed job may upload the reports that were actually generated before failure. If none exist, the artifact step warns; the earlier failure still fails the job.
+Only `reports/engineering.json`, `reports/e2e.json`, `reports/hackathon-browser.json`, `reports/product-browser.json` and `reports/benchmark.json` are uploaded, for seven days. The workflow removes committed copies before execution so a setup failure cannot upload old passing reports as this run's results. A failed job may upload the reports that were actually generated before failure. If none exist, the artifact step warns; the earlier failure still fails the job.
 
 Private evidence, runtime responses, `.formlift/` screenshots, and the wider `reports/` directory are never included in this artifact selection. Source fingerprints in generated reports identify the code tested; the browser report records the actual browser version.
 

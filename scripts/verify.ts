@@ -31,6 +31,8 @@ export type VerificationReport = {
   normalizationVersion?: string;
   engineering?: unknown;
   browser?: unknown;
+  hackathonBrowser?: unknown;
+  productBrowser?: unknown;
 };
 type Readiness = { report: VerificationReport; model?: FormModel; policy?: BehaviorPolicy; cases: EvidenceCase[] };
 const isObject = (v: unknown): v is ObjectValue => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -302,7 +304,7 @@ export async function verifyReference(root = process.cwd(), manifestPath?: strin
 
 export async function verifyRelease(root = process.cwd(), manifestPath?: string): Promise<VerificationReport> {
   const report = { ...await verifyReference(root, manifestPath), mode: 'release' };
-  for (const [name, field] of [['engineering', 'engineering'], ['e2e', 'browser']] as const) {
+  for (const [name, field] of [['engineering', 'engineering'], ['e2e', 'browser'], ['hackathon-browser', 'hackathonBrowser'], ['product-browser', 'productBrowser']] as const) {
     try {
       const saved: unknown = JSON.parse(await readFile(resolve(root, `reports/${name}.json`), 'utf8'));
       report[field] = saved;

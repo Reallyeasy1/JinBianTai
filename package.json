@@ -19,7 +19,11 @@
     "evidence:normalize": "npm run build && node dist/scripts/evidence.js normalize",
     "verify:readiness": "npm run build && node dist/scripts/verify.js readiness",
     "verify:reference": "npm run build && node dist/scripts/verify.js reference",
-    "verify:release": "npm run build && node dist/scripts/verify.js release"
+    "verify:release": "npm run build && node dist/scripts/verify.js release",
+    "benchmark": "npm run build && node dist/scripts/benchmark.js",
+    "test:hackathon": "npm run build && node dist/tests/hackathon-browser.js",
+    "test:product": "npm run build && node dist/tests/product-browser.js",
+    "export:demo": "npm run build && node dist/scripts/export-demo.js"
   },
   "devDependencies": {
     "@types/node": "26.6.6",

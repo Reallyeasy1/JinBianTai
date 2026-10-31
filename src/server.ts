@@ -7,6 +7,8 @@ import { replay } from './engine.js';
 import { serializeResponse } from './response.js';
 import { validPolicy, MAX_EVENTS, type BehaviorPolicy, type FormModel } from './model.js';
 import { jsonlWriter, serializedWriter } from './storage.js';
+import { exportOfflineHtml } from './export.js';
+import { readResults, resultsCsv, ResultsError } from './results.js';
 
 export const ENGINEERING_POLICY: BehaviorPolicy = Object.freeze({
   id: 'engineering-retain-active-v1', status: 'SYNTHETIC', restoration: 'retain', submission: 'active',
@@ -61,7 +63,14 @@ function plain(value: unknown): value is Record<string, unknown> { return !!valu
 export function createApp(options: AppOptions = {}): Server {
   if (!validPolicy(options.policy ?? ENGINEERING_POLICY)) throw new Error('Invalid explicit behavior policy.');
   const policy = Object.freeze({ ...(options.policy ?? ENGINEERING_POLICY) });
-  const persist = options.persist ? serializedWriter(options.persist) : jsonlWriter(options.dataFile ?? resolve('data/responses.jsonl'));
+  const dataFile = options.dataFile ?? resolve('data/responses.jsonl');
+  const persist = options.persist ? serializedWriter(options.persist) : jsonlWriter(dataFile);
+  let storageTail: Promise<void> = Promise.resolve();
+  function storageOperation<T>(operation: () => Promise<T>): Promise<T> {
+    const task = storageTail.then(operation);
+    storageTail = task.then(() => undefined, () => undefined);
+    return task;
+  }
   const publicDir = options.publicDir ?? resolve('dist/public');
   let active: { model: FormModel; artifactHash: string } | undefined;
   const staticFiles: Record<string, [string, string]> = {
@@ -110,9 +119,38 @@ export function createApp(options: AppOptions = {}): Server {
         };
         // No await between identity check and queue acceptance; later imports cannot change this snapshot.
         if (active !== snapshot) throw new HttpError(409, 'STALE_FORM', 'The active definition changed.');
-        try { await persist(record); }
+        try { await storageOperation(() => persist(record)); }
         catch { throw new HttpError(500, 'PERSIST_FAILED', 'The response was not confirmed saved. Retry may duplicate a response after an uncertain failure.'); }
         json(res, 201, record); return;
+      }
+      if (path === '/api/results' || path === '/api/results.csv') {
+        if (req.method !== 'GET') throw new HttpError(405, 'METHOD_NOT_ALLOWED', 'Use GET.');
+        const parameters = new URL(req.url ?? '/', 'http://localhost').searchParams;
+        const snapshot = active;
+        if (!snapshot || parameters.get('formHash') !== snapshot.model.formHash) throw new HttpError(409, 'STALE_FORM', 'Import the intended form before viewing its responses.');
+        let results;
+        try { results = await storageOperation(() => readResults(dataFile, snapshot.model)); }
+        catch (error) {
+          if (error instanceof ResultsError) throw new HttpError(error.status, error.code, error.message);
+          throw error;
+        }
+        if (path === '/api/results') { json(res, 200, results); return; }
+        if (parameters.get('revision') !== results.revision) throw new HttpError(409, 'STALE_RESULTS', 'Responses changed. Refresh the inbox before exporting the same snapshot.');
+        res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="formlift-responses.csv"', 'Cache-Control': 'no-store',
+          'X-FormLift-Returned': String(results.returned), 'X-FormLift-Total': String(results.total) });
+        res.end(resultsCsv(results)); return;
+      }
+      if (path === '/api/export') {
+        if (req.method !== 'GET') throw new HttpError(405, 'METHOD_NOT_ALLOWED', 'Use GET.');
+        const expectedHash = new URL(req.url ?? '/', 'http://localhost').searchParams.get('formHash');
+        const snapshot = active;
+        if (!snapshot || expectedHash !== snapshot.model.formHash) throw new HttpError(409, 'STALE_FORM', 'Import the current form before exporting it.');
+        let bundle: string; let license: string;
+        try { [bundle, license] = await Promise.all([readFile(resolve(publicDir, '../offline.js'), 'utf8'), readFile(resolve('LICENSE'), 'utf8')]); }
+        catch { throw new HttpError(503, 'EXPORT_UNAVAILABLE', 'Build the offline runner before exporting.'); }
+        const html = exportOfflineHtml({ model: snapshot.model, policy, artifactHash: snapshot.artifactHash }, bundle, license);
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Content-Disposition': 'attachment; filename="formlift-offline.html"', 'Cache-Control': 'no-store' });
+        res.end(html); return;
       }
       if (Object.hasOwn(staticFiles, path)) {
         if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'METHOD_NOT_ALLOWED', 'Use GET or HEAD.');

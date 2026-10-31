@@ -6,6 +6,8 @@ Phase 2 adds offline private evidence intake and stored-answer projection; see `
 
 ## Task and document precedence
 
+The explicit hackathon-improvement continuation is designed in `docs/HACKATHON_DESIGN.md` and coordinated by `docs/HACKATHON_WORKFLOW.md`. It adds branch inspection, isolated replay, standalone offline forms, scenario costs, and synthetic measurements. These additions do not resolve missing source evidence. Use `npm run test:hackathon` for actual offline browser coverage and `npm run benchmark` for measured local workloads. Preserve export privacy, source identity checks, and missing/empty/zero distinctions.
+
 Follow the active user request. Planning requests stay in planning. An implementation launch such as `docs/PROMPT.md` authorizes routine local implementation, tests, fixes, commits, and a draft PR; continue through those stages without redundant approval pauses.
 
 For implementation, read in this order:
@@ -38,3 +40,7 @@ Create and execute the commands in `docs/ACCEPTANCE.md`. For verification wrappe
 
 A manual browser check must remain manual. A zero-case or missing-reference verification cannot be green. End with exact commands, actual results, changed revision, scope, known failures, and evidence-backed claims. See `docs/START_HERE.md` for launch prerequisites and `docs/PROMPT.md` for the complete work order.
 
+
+## Current product continuation
+
+`docs/PRODUCT_UPGRADE_DESIGN.md` records the competitor review, response API/CSV contracts, UI redesign and agent ownership before implementation. For this explicit continuation, the UI agent owns `src/client.ts` and `public/`, the lead owns backend/integration, and QA owns assigned tests; ownership remains exclusive. Current tests include `npm run test:product`. Never treat offline downloaded receipts as automatically collected server records, silently truncate an oversized log, or export a different response snapshot than the reviewed revision.

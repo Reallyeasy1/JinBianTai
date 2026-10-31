@@ -1,6 +1,6 @@
 # FormLift acceptance and verification contract
 
-Status: design specification. None of the commands, tests, evidence captures, or results below exists merely because it is documented here. Implement the checks during the build and report their actual outcomes.
+Status: acceptance specification retained from planning. Commands and engineering checks are implemented; see `IMPLEMENTATION.md` and current reports for actual outcomes. Genuine source evidence and compatibility remain BLOCKED. Requirements below are not themselves proof of completion.
 
 This document turns the requirements in `PLAN.md` and experiments in `EVIDENCE_AND_TESTS.md` into acceptance gates. `DESIGN.md` owns application interfaces. `AGENT_WORKFLOW.md` owns execution order and agent responsibilities.
 
@@ -72,7 +72,7 @@ Freeze the exact evidence schema at the design gate. Keep raw and sanitized hash
 
 ## 3. Planned verification commands
 
-These package scripts are acceptance requirements for the implementation. They are not runnable in the documentation-only repository. Keep command names consistent in the eventual README and avoid scattering ad hoc test commands across agent outputs.
+These package scripts are implemented. Keep command names consistent with the README and distinguish actual engineering results from the still-blocked reference gates.
 
 | Command | Required behavior |
 | --- | --- |
@@ -177,3 +177,4 @@ A successful narrower result can be delivered without pretending the entire targ
 The final machine-readable report and readable summary must contain actual counts, failed/skipped checks, source and build hashes, exact commands/exits, elapsed time, missing prerequisites, inferred policy, normalization, runtime external calls, and license status. Include costs only when measured or explicitly marked estimates. No private raw data or credentials belong in it.
 
 Document validation for this planning change is limited to consistency, links, fenced examples, schedule arithmetic, and independent review. Application acceptance can only be evaluated after implementation and real evidence collection.
+

@@ -1,6 +1,6 @@
 # FormLift: single-launch agent workflow
 
-Status: implementation runbook; no application has been built or tested by this document. Read [DESIGN.md](DESIGN.md), [PLAN.md](PLAN.md), and [EVIDENCE_AND_TESTS.md](EVIDENCE_AND_TESTS.md) before execution. This file defines orchestration; the design defines interfaces; the evidence protocol defines what a source comparison can prove.
+Status: original implementation runbook. A local engineering prototype is now built; read `IMPLEMENTATION.md` and current reports for actual state and deviations. This document itself is not proof of source compatibility. Read [DESIGN.md](DESIGN.md), [PLAN.md](PLAN.md), and [EVIDENCE_AND_TESTS.md](EVIDENCE_AND_TESTS.md) before execution. This file defines orchestration; the design defines interfaces; the evidence protocol defines what a source comparison can prove.
 
 ## 1. What “one shot” means
 
@@ -109,7 +109,7 @@ If a supported behavior fails after the repair budget, either remove that behavi
 
 ## 7. Verification sequence and command contract
 
-These commands are requirements for the future implementation, not commands available in the current planning-only repository. Implement simple scripts around existing tools; avoid adding a framework merely to satisfy command names.
+These commands are implemented. Use their actual reports and exits; zero genuine reference cases must remain BLOCKED. Keep scripts small and avoid adding a framework merely to satisfy command names.
 
 | Order | Command/check | Required meaning |
 | --- | --- | --- |
@@ -161,3 +161,4 @@ Use [START_HERE.md](START_HERE.md) for the prerequisite checklist and paste the 
 The launch instruction must explicitly activate reference mode, set the original 180-minute deadline, require this runbook and the design, authorize routine implementation/testing/fixes and reviewable branch commits, and specify whether push/draft-PR creation is authorized. It must retain the evidence gate, exclusive file ownership, exact verification reports, feature freeze, and no automatic merge or deployment of implementation.
 
 If a synthetic prototype is intentionally desired despite missing evidence, change the mode before launch through an explicit user instruction and require `PROTOTYPE_ONLY` labeling throughout. The default is `allowPrototype=false`; lack of evidence does not grant permission to change it. A prototype result is a different outcome, not a successful reference-mode run.
+

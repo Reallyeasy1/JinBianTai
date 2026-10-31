@@ -1,6 +1,6 @@
 # FormLift repository instructions
 
-Current state: design and agent configuration only. No application, source captures, benchmarks, or passing application results exist yet. Do not claim npm commands work until implemented and run.
+Current state: local engineering prototype implemented. Read `docs/IMPLEMENTATION.md` and current reports first. Bundled fixtures are synthetic; genuine Typeform captures and compatibility remain absent. Do not treat engineering PASS as reference PASS or reset an existing implementation timer.
 
 ## Task and document precedence
 
@@ -8,7 +8,7 @@ Follow the active user request. Planning requests stay in planning. An implement
 
 For implementation, read in this order:
 
-1. `docs/DESIGN.md`: application architecture and concrete interfaces.
+1. `docs/IMPLEMENTATION.md`: actual contracts, deviations, and limitations; then `docs/DESIGN.md` for original architecture.
 2. `docs/ACCEPTANCE.md`: test commands, evidence/release gates, result semantics.
 3. `docs/AGENT_WORKFLOW.md`: execution order, ownership, checkpoints, recovery.
 4. `docs/EVIDENCE_AND_TESTS.md`: reference experiment and normalization protocol.
@@ -35,3 +35,4 @@ For implementation, read in this order:
 Create and execute the commands in `docs/ACCEPTANCE.md`. For verification wrappers: exit 0 is complete required success; exit 1 is a detected failure; exit 2 is blocked/incomplete. Actual npm bootstrap or third-party tool failures are classified by the wrapper/report; do not reinterpret missing dependencies as passing.
 
 A manual browser check must remain manual. A zero-case or missing-reference verification cannot be green. End with exact commands, actual results, changed revision, scope, known failures, and evidence-backed claims. See `docs/START_HERE.md` for launch prerequisites and `docs/PROMPT.md` for the complete work order.
+

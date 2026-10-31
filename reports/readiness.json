@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "formlift-verification/1",
+  "mode": "readiness",
+  "status": "BLOCKED",
+  "exitCode": 2,
+  "generatedAt": "2026-10-31T05:05:12.156Z",
+  "fingerprint": "1ab083f5380dd2981e7369861587fb2aba796c3ab0293603d8b99e6a49fdc703",
+  "evidenceStatus": "BLOCKED",
+  "issues": [
+    {
+      "code": "MISSING_EVIDENCE",
+      "message": "No reference manifest supplied. Genuine form definition, restoration observation, and response-content captures are required.",
+      "path": "manifest"
+    }
+  ],
+  "counts": {
+    "captured": 0,
+    "eligible": 0,
+    "executed": 0,
+    "passed": 0,
+    "failed": 0,
+    "unverified": 0
+  },
+  "provenanceNotice": "Artifact hashes and declared provenance are checked. This tool cannot authenticate who captured the source or independently prove the capture is genuine. No source behavior is inferred from synthetic fixtures."
+}

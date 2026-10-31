@@ -1,0 +1,52 @@
+{
+  "title": "SYNTHETIC • Quote request engineering fixture",
+  "fields": [
+    {
+      "ref": "request",
+      "type": "multiple_choice",
+      "title": "Request a quote?",
+      "properties": {
+        "allow_multiple_selection": false,
+        "choices": [
+          { "ref": "yes", "label": "Yes" },
+          { "ref": "no", "label": "No" }
+        ]
+      },
+      "validations": { "required": true }
+    },
+    {
+      "ref": "budget",
+      "type": "number",
+      "title": "Budget?",
+      "properties": {},
+      "validations": { "required": true, "min_value": 0, "max_value": 10000 }
+    },
+    {
+      "ref": "contact",
+      "type": "short_text",
+      "title": "Contact name",
+      "properties": {},
+      "validations": { "required": true, "max_length": 80 }
+    }
+  ],
+  "logic": [
+    {
+      "type": "field",
+      "ref": "request",
+      "actions": [
+        {
+          "action": "jump",
+          "details": { "to": { "type": "field", "value": "contact" } },
+          "condition": {
+            "op": "is",
+            "vars": [
+              { "type": "field", "value": "request" },
+              { "type": "choice", "value": "no" }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "thankyou_screens": [{ "ref": "default", "title": "Thank you" }]
+}

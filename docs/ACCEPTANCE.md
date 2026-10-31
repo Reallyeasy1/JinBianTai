@@ -83,6 +83,7 @@ These package scripts are implemented. Keep command names consistent with the RE
 | `npm run verify:readiness` | Validate evidence manifest, provenance fields, references, hashes, and required capture coverage |
 | `npm run verify:reference` | Replay eligible histories; compare independently captured observations by channel |
 | `npm run test:e2e` | Run the browser acceptance journeys against an isolated local server |
+| `npm run verify:reproducibility` | Copy the current source tree to a temporary directory, install from the lockfile, run the suite, start the server, save and read back one response |
 | `npm run verify:release` | Aggregate fresh results, inspect required artifacts, validate reproducibility status, and emit a release report |
 | `npm start` | Start the local application using documented runtime configuration |
 

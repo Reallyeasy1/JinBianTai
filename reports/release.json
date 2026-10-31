@@ -3,8 +3,14 @@
   "mode": "release",
   "status": "BLOCKED",
   "exitCode": 2,
-  "generatedAt": "2026-10-31T06:20:21.243Z",
-  "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+  "startedAt": "2026-10-31T07:53:37.562Z",
+  "finishedAt": "2026-10-31T07:53:37.566Z",
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "fingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
   "evidenceStatus": "BLOCKED",
   "issues": [
     {
@@ -14,54 +20,58 @@
     }
   ],
   "counts": {
+    "planned": 0,
     "captured": 0,
     "eligible": 0,
     "executed": 0,
     "passed": 0,
     "failed": 0,
-    "unverified": 0
+    "unverified": 0,
+    "notApplicable": 0
   },
+  "channels": {},
+  "cases": [],
   "provenanceNotice": "Artifact hashes and declared provenance are checked. This tool cannot authenticate who captured the source or independently prove the capture is genuine. No source behavior is inferred from synthetic fixtures.",
   "engineering": {
     "schemaVersion": "formlift-engineering/1",
     "status": "PASS",
-    "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+    "fingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
     "classification": "SYNTHETIC_ENGINEERING_ONLY",
     "referenceCases": 0,
-    "startedAt": "2026-10-31T06:19:19.171Z",
-    "finishedAt": "2026-10-31T06:19:24.174Z",
+    "startedAt": "2026-10-31T07:52:18.503Z",
+    "finishedAt": "2026-10-31T07:52:20.964Z",
     "runtime": {
       "node": "v24.22.1",
       "platform": "linux",
       "architecture": "x64"
     },
     "counts": {
-      "executed": 88,
-      "passed": 88,
+      "executed": 91,
+      "passed": 91,
       "failed": 0,
       "skipped": 0
     },
     "commands": [
       {
-        "command": "npm run typecheck",
-        "startedAt": "2026-10-31T06:19:19.215Z",
-        "finishedAt": "2026-10-31T06:19:19.894Z",
+        "command": "node node_modules/typescript/bin/tsc --noEmit",
+        "startedAt": "2026-10-31T07:52:18.522Z",
+        "finishedAt": "2026-10-31T07:52:18.940Z",
         "exitCode": 0,
         "signal": null,
         "launched": true
       },
       {
-        "command": "npm run build",
-        "startedAt": "2026-10-31T06:19:19.894Z",
-        "finishedAt": "2026-10-31T06:19:20.922Z",
+        "command": "node scripts/build.mjs",
+        "startedAt": "2026-10-31T07:52:18.940Z",
+        "finishedAt": "2026-10-31T07:52:19.448Z",
         "exitCode": 0,
         "signal": null,
         "launched": true
       },
       {
         "command": "node --test --test-reporter=tap dist/tests/evidence-cli.test.js dist/tests/evidence.test.js dist/tests/hackathon.test.js dist/tests/product.test.js dist/tests/server.test.js dist/tests/unit.test.js dist/tests/verification.test.js",
-        "startedAt": "2026-10-31T06:19:20.950Z",
-        "finishedAt": "2026-10-31T06:19:24.156Z",
+        "startedAt": "2026-10-31T07:52:19.458Z",
+        "finishedAt": "2026-10-31T07:52:20.952Z",
         "exitCode": 0,
         "signal": null,
         "launched": true
@@ -70,18 +80,23 @@
   },
   "browser": {
     "status": "PASS",
-    "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+    "fingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
     "classification": "SYNTHETIC_ENGINEERING_ONLY",
-    "buildFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
-    "finishedFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+    "buildFingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+    "finishedFingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
     "browser": {
       "engine": "chromium",
-      "version": "153.0.8010.0",
+      "version": "153.0.8010.12",
       "executable": "environment-override"
     },
+    "runtime": {
+      "node": "v24.22.1",
+      "platform": "linux",
+      "architecture": "x64"
+    },
     "referenceCases": 0,
-    "startedAt": "2026-10-31T06:19:37.169Z",
-    "finishedAt": "2026-10-31T06:19:45.246Z",
+    "startedAt": "2026-10-31T07:52:42.316Z",
+    "finishedAt": "2026-10-31T07:52:51.139Z",
     "checks": [
       {
         "id": "UI-01",
@@ -112,12 +127,17 @@
         "id": "ENG-07",
         "status": "PASS",
         "description": "Typing over 200 characters uses committed field changes rather than one event per keystroke"
+      },
+      {
+        "id": "UI-05",
+        "status": "PASS",
+        "description": "Import summary shows fields, routes, and notes; a rejected import lists every issue and keeps the summary"
       }
     ],
     "counts": {
-      "planned": 6,
-      "executed": 6,
-      "passed": 6,
+      "planned": 7,
+      "executed": 7,
+      "passed": 7,
       "failed": 0,
       "skipped": 0,
       "infrastructureFailures": 0
@@ -128,14 +148,19 @@
     "status": "PASS",
     "classification": "SYNTHETIC_ENGINEERING_ONLY",
     "referenceCases": 0,
-    "startedAt": "2026-10-31T06:19:36.972Z",
-    "finishedAt": "2026-10-31T06:19:42.039Z",
-    "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
-    "buildFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
-    "finishedFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+    "startedAt": "2026-10-31T07:52:51.581Z",
+    "finishedAt": "2026-10-31T07:52:56.365Z",
+    "fingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+    "buildFingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+    "finishedFingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+    "runtime": {
+      "node": "v24.22.1",
+      "platform": "linux",
+      "architecture": "x64"
+    },
     "browser": {
       "engine": "chromium",
-      "version": "153.0.8010.0",
+      "version": "153.0.8010.12",
       "executable": "environment-override"
     },
     "counts": {
@@ -174,14 +199,19 @@
     "status": "PASS",
     "classification": "SYNTHETIC_ENGINEERING_ONLY",
     "referenceCases": 0,
-    "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
-    "buildFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
-    "finishedFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
-    "startedAt": "2026-10-31T06:19:37.192Z",
-    "finishedAt": "2026-10-31T06:19:43.861Z",
+    "fingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+    "buildFingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+    "finishedFingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+    "startedAt": "2026-10-31T07:52:56.779Z",
+    "finishedAt": "2026-10-31T07:53:02.846Z",
+    "runtime": {
+      "node": "v24.22.1",
+      "platform": "linux",
+      "architecture": "x64"
+    },
     "browser": {
       "engine": "chromium",
-      "version": "153.0.8010.0",
+      "version": "153.0.8010.12",
       "executable": "environment-override"
     },
     "counts": {
@@ -209,5 +239,62 @@
         "status": "PASS"
       }
     ]
+  },
+  "reproducibility": {
+    "schemaVersion": "formlift-reproducibility/1",
+    "status": "PASS",
+    "fingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+    "classification": "SYNTHETIC_ENGINEERING_ONLY",
+    "referenceCases": 0,
+    "startedAt": "2026-10-31T07:53:03.049Z",
+    "finishedAt": "2026-10-31T07:53:07.399Z",
+    "runtime": {
+      "node": "v24.22.1",
+      "platform": "linux",
+      "architecture": "x64"
+    },
+    "commands": [
+      {
+        "command": "npm ci --no-audit --no-fund",
+        "startedAt": "2026-10-31T07:53:03.087Z",
+        "finishedAt": "2026-10-31T07:53:03.943Z",
+        "exitCode": 0,
+        "signal": null,
+        "launched": true
+      },
+      {
+        "command": "npm test",
+        "startedAt": "2026-10-31T07:53:03.943Z",
+        "finishedAt": "2026-10-31T07:53:06.760Z",
+        "exitCode": 0,
+        "signal": null,
+        "launched": true
+      },
+      {
+        "command": "npm start",
+        "startedAt": "2026-10-31T07:53:06.767Z",
+        "finishedAt": "2026-10-31T07:53:07.048Z",
+        "exitCode": 0,
+        "signal": null,
+        "launched": true
+      }
+    ],
+    "smoke": {
+      "startup": "PASS",
+      "steps": [
+        "GET /api/status",
+        "GET /",
+        "POST /api/import",
+        "POST /api/responses",
+        "JSONL readback"
+      ],
+      "referenceStatus": "BLOCKED"
+    },
+    "engineeringCounts": {
+      "executed": 91,
+      "passed": 91,
+      "failed": 0,
+      "skipped": 0
+    }
   }
 }

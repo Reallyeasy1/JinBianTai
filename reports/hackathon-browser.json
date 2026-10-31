@@ -3,14 +3,19 @@
   "status": "PASS",
   "classification": "SYNTHETIC_ENGINEERING_ONLY",
   "referenceCases": 0,
-  "startedAt": "2026-10-31T06:19:36.972Z",
-  "finishedAt": "2026-10-31T06:19:42.039Z",
-  "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
-  "buildFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
-  "finishedFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+  "startedAt": "2026-10-31T07:52:51.581Z",
+  "finishedAt": "2026-10-31T07:52:56.365Z",
+  "fingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+  "buildFingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+  "finishedFingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "architecture": "x64"
+  },
   "browser": {
     "engine": "chromium",
-    "version": "153.0.8010.0",
+    "version": "153.0.8010.12",
     "executable": "environment-override"
   },
   "counts": {

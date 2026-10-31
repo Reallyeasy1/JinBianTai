@@ -26,7 +26,7 @@ export function stableJson(value: unknown): string {
   if (value && typeof value === 'object') return `{${Object.keys(value).sort().map(k => `${JSON.stringify(k)}:${stableJson((value as Record<string, unknown>)[k])}`).join(',')}}`;
   return JSON.stringify(value) ?? 'null';
 }
-const digest = (text: string) => createHash('sha256').update(text).digest('hex');
+const digest = (data: string | Uint8Array) => createHash('sha256').update(data).digest('hex');
 function json(res: ServerResponse, status: number, body: unknown) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
   res.end(JSON.stringify(body));
@@ -38,12 +38,12 @@ function assertLocal(req: IncomingMessage) {
   if (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`) throw new HttpError(403, 'ORIGIN_REJECTED', 'Cross-origin requests are not accepted.');
   if (req.headers['sec-fetch-site'] === 'cross-site') throw new HttpError(403, 'ORIGIN_REJECTED', 'Cross-site requests are not accepted.');
 }
-async function body(req: IncomingMessage, limit: number): Promise<{ value: unknown; raw: string }> {
+async function body(req: IncomingMessage, limit: number): Promise<{ value: unknown; bytes: Buffer }> {
   if ((req.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase() !== 'application/json') throw new HttpError(415, 'JSON_REQUIRED', 'Send application/json.');
   if (req.headers['content-encoding'] && req.headers['content-encoding'] !== 'identity') throw new HttpError(415, 'ENCODING_UNSUPPORTED', 'Compressed request bodies are unsupported.');
   const declared = Number(req.headers['content-length']);
   if (Number.isFinite(declared) && declared > limit) { req.resume(); throw new HttpError(413, 'BODY_TOO_LARGE', `Request exceeds ${limit} bytes.`); }
-  const raw = await new Promise<string>((accept, reject) => {
+  const bytes = await new Promise<Buffer>((accept, reject) => {
     const chunks: Buffer[] = []; let length = 0; let failed = false;
     req.on('data', (chunk: Buffer) => {
       if (failed) return;
@@ -51,11 +51,15 @@ async function body(req: IncomingMessage, limit: number): Promise<{ value: unkno
       if (length > limit) { failed = true; chunks.length = 0; reject(new HttpError(413, 'BODY_TOO_LARGE', `Request exceeds ${limit} bytes.`)); return; }
       chunks.push(chunk);
     });
-    req.on('end', () => { if (!failed) accept(Buffer.concat(chunks).toString('utf8')); });
+    req.on('end', () => { if (!failed) accept(Buffer.concat(chunks)); });
     req.on('error', () => reject(new HttpError(400, 'BODY_INTERRUPTED', 'Request body could not be read.')));
     req.on('aborted', () => reject(new HttpError(400, 'BODY_INTERRUPTED', 'Request body was interrupted.')));
   });
-  try { return { value: JSON.parse(raw), raw }; }
+  let raw: string;
+  // Fatal decoding keeps the recorded artifact hash equal to the hash of the bytes that were actually accepted.
+  try { raw = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes); }
+  catch { throw new HttpError(400, 'INVALID_ENCODING', 'Request body must be valid UTF-8.'); }
+  try { return { value: JSON.parse(raw), bytes }; }
   catch { throw new HttpError(400, 'INVALID_JSON', 'Request body is not valid JSON.'); }
 }
 function plain(value: unknown): value is Record<string, unknown> { return !!value && typeof value === 'object' && !Array.isArray(value); }
@@ -78,7 +82,7 @@ export function createApp(options: AppOptions = {}): Server {
     '/styles.css': ['styles.css', 'text/css; charset=utf-8'], '/client.js': ['client.js', 'text/javascript; charset=utf-8'],
     '/demo.json': ['demo.json', 'application/json; charset=utf-8'],
   };
-  const server = createServer(async (req, res) => {
+  const server = createServer({ connectionsCheckingInterval: 5_000 }, async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'");
@@ -96,7 +100,7 @@ export function createApp(options: AppOptions = {}): Server {
         if (!imported.ok) throw new HttpError(422, 'UNSUPPORTED_FORM', 'The definition is outside the supported subset.', imported.errors);
         const model = imported.model;
         model.formHash = digest(stableJson({ model: { ...model, formHash: '' }, policy }));
-        active = { model, artifactHash: digest(parsed.raw) };
+        active = { model, artifactHash: digest(parsed.bytes) };
         json(res, 200, { formHash: model.formHash, model, warnings: imported.warnings, evidenceStatus: 'UNVERIFIED', referenceStatus: 'BLOCKED', policy }); return;
       }
       if (path === '/api/responses') {

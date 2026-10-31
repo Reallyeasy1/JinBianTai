@@ -36,10 +36,11 @@ The accepted source-shaped JSON is **not a verified Typeform export adapter** un
 
 - One to six fields with unique safe references. Missing/doubled refs, unsafe keys, dangling targets, and unsupported cycles fail import.
 - `short_text`: optional/required; maximum length up to 4,096 characters.
-- `number`: optional/required; safe whole numbers with optional bounds. Empty optional number is missing; zero is a value. No hex, exponent, or whitespace coercion.
+- `number`: optional/required; safe whole numbers with optional bounds. Empty optional number is missing; zero is a value. The lexeme must be a plain integer: no hex, exponent, whitespace, decimal notation such as `1.0`, or signed zero. Nothing is normalised, so `1.0` and `-0` are rejected rather than converted.
 - `multiple_choice`: one answer from two to twenty fixed referenced choices. No multiple selection, “other”, or randomization.
 - At most one branch attached to its required choice field: `op: "is"`, field/choice references, and a forward `jump`. An optional trailing unconditional fallback is supported. No compound operators, variables, calculations, or backward source jumps.
 - Ordinary field order supplies the default route. Up to two endings including a generated default if absent. No imported redirect is followed.
+- Every imported field and ending must lie on a route the engine can take under one of the two branch outcomes. An unreachable field or an imported ending that nothing routes to is rejected (`UNREACHABLE_FIELD`, `UNREACHABLE_ENDING`) instead of being dropped silently; the fall-through ending is the one with `ref: "default"` or the target of a trailing always-jump.
 - Known nonbehavioral metadata can produce warnings; unsupported behavioral properties, hidden fields, dynamic `{{...}}` recall, and rich semantic features fail explicitly. Visible labels use inert text rendering.
 
 These limits and parsing rules are local decisions, not Typeform guarantees. The original three-to-six-question demo goal is retained; one/two-field forms are accepted for simpler engineering checks.
@@ -64,10 +65,10 @@ Canonical answers list every field with a presence tag. Missing, null, empty str
 | Endpoint | Contract |
 | --- | --- |
 | `GET /api/status` | Engineering mode, reference BLOCKED, policy, limits, active hash |
-| `POST /api/import` | Raw JSON; returns validated model, warnings, identity, unverified status |
+| `POST /api/import` | Raw JSON (valid UTF-8, otherwise 400 `INVALID_ENCODING`); returns validated model, warnings, identity, unverified status |
 | `POST /api/responses` | Only `{ formHash, events }`; HTTP 201 saved receipt after replay/write |
 
-Invalid import preserves the previous form. Semantic model/policy identity and exact imported-byte identity are separate SHA-256 hashes. A stale identity returns 409. Invalid bodies/transitions return bounded 400/422 errors, unsupported content types 415, and oversized requests 413. Clients cannot choose filesystem paths.
+Invalid import preserves the previous form. Semantic model/policy identity and exact imported-byte identity are separate SHA-256 hashes; the byte identity is computed over the request bytes before decoding. A stale identity returns 409. Invalid bodies/transitions return bounded 400/422 errors, unsupported content types 415, and oversized requests 413. Clients cannot choose filesystem paths.
 
 | Setting | Default / limit |
 | --- | --- |
@@ -80,13 +81,19 @@ Invalid import preserves the previous form. Semantic model/policy identity and e
 
 Local Host/Origin checks, a self-only Content Security Policy, and a fixed asset allowlist support local use. The saved data file is not served. These are not a multi-user authorization system.
 
-JSONL writes are serialized within one process; new files use mode 0600. A failed write does not poison later requests. Append completion is not a power-loss durability guarantee. No idempotency key, deduplication, cross-process lock, encryption, backup, or retention system is included. Retry after an uncertain outcome can duplicate a response. Restart loses the active imported definition; saved JSONL remains.
+JSONL writes are serialized within one process; new files use mode 0600. `npm start` creates the data directory and opens the file for append before listening, so an unwritable location fails at startup rather than on the first respondent. On the first SIGINT/SIGTERM the server stops accepting connections, gives in-flight requests two seconds, then drops them; a second signal drops them immediately. A failed write does not poison later requests. Append completion is not a power-loss durability guarantee. No idempotency key, deduplication, cross-process lock, encryption, backup, or retention system is included. Retry after an uncertain outcome can duplicate a response. Restart loses the active imported definition; saved JSONL remains.
 
 ## Verification and evidence handoff
 
-`npm test` exercises import/engine/comparison and real local HTTP/storage. Browser checks use an isolated server and actual JSONL readback: included/skipped routes, restoration, validation recovery, rejected-import preservation, inert imported labels, and event coalescing. All test data is synthetic.
+`npm test` exercises import/engine/comparison and real local HTTP/storage. Browser checks use an isolated server and actual JSONL readback: included/skipped routes, restoration, validation recovery, rejected-import preservation, inert imported labels, event coalescing, and the import summary with full rejection diagnostics. All test data is synthetic.
 
-Reports include source fingerprints; relevant code, test, fixture, configuration, or dependency changes invalidate old results. `npm test` refreshes `reports/engineering.json` with actual typecheck/build/test commands and counts; `reports/reproducibility.json` records clean installation; `reports/e2e.json` records actual browser/version/journeys. Reference reports count zero source cases while no captures exist. The release gate requires fresh engineering/browser reports plus genuine reference evidence.
+During import the page shows a pending notice and announces it to assistive technology; a rejected import keeps the previous definition and says so. After a successful import the page lists every accepted field with its type, requirement, and constraints, both routes under the imported branch, the endings, and every import note. The routes are produced by the shared engine's own `nextTarget`, not a second routing algorithm. A rejected import lists every reported issue with its path and code (the server bounds this at 30) and leaves the previous form and its summary in place.
+
+Text inputs enforce only the engine's 4,096-character ceiling in the browser, so a field's own limit surfaces as the engine's `TEXT_TOO_LONG` error with the original input intact. After a save the next action receives focus. A definite rejection of a save (HTTP 4xx such as a stale form) is shown without the duplicate-risk note and without a Retry label; the duplicate-risk wording is reserved for network failures and server errors, where the outcome is uncertain.
+
+The engineering runner invokes the TypeScript compiler, build script, and Node test runner through the current Node executable rather than through npm, because Node 22 and later on Windows refuse to spawn `npm.cmd` without a shell. It reports `BLOCKED` with exit 2, not `FAIL`, when the toolchain cannot be launched or the Node major is below `engines.node`; the browser runner applies the same runtime rule. `npm run verify:reproducibility` copies the current source tree (tracked and untracked files, honouring `.gitignore`) to a temporary directory, runs `npm ci`, `npm test`, and `npm start` with an import, a saved response, and a JSONL readback, and writes `reports/reproducibility.json` with per-command exits and the runtime.
+
+Reports include source fingerprints and the Node runtime; relevant code, test, fixture, configuration, or dependency changes invalidate old results, and so does a different Node major. `npm test` refreshes `reports/engineering.json` with actual typecheck/build/test commands and counts; `npm run verify:reproducibility` writes `reports/reproducibility.json`; `reports/e2e.json` records actual browser/version/journeys. Verification reports carry start and finish times, planned/captured/eligible/executed/passed/failed/unverified/not-applicable counts, a per-channel summary, and one row per manifest case with status `PASS`, `FAIL`, `UNVERIFIED`, or `NOT_APPLICABLE`. Validated cases are replayed even when coverage is incomplete, so a real mismatch exits 1 rather than hiding behind BLOCKED. Reference reports count zero source cases while no captures exist. The release gate requires fresh engineering, browser, and reproducibility reports on the current fingerprint and Node major, plus genuine reference evidence.
 
 The standard Playwright browser download failed in this environment. Tests used a separately provisioned Chromium 153.0.8010.0 via the explicit executable override; no alternate binary was added to the project. Desktop and 390-pixel mobile layouts were visually inspected. This is not cross-browser coverage.
 
@@ -180,3 +187,30 @@ The provisional score moved from 55 to approximately 60/100 because the actual w
 The next priority is the four controlled experiments in [CAPTURE_WORKFLOW.md](CAPTURE_WORKFLOW.md): direct included route, direct skipped route, answered branch abandoned at submission, and return to that branch. Capture restoration separately from completed stored answers, freeze held-out cases, then compare the independently observed output. No original form, account credentials or captures were available in this continuation, so none were fabricated. Without those experiments, the project remains a documented-schema implementation with an investigation harness, not demonstrated reverse engineering.
 
 The next customer test should establish one equivalent attended/offline workflow and its actual volume, plan price and setup effort. A broader builder, accounts, cloud hosting or additional integrations should wait until that evidence shows they matter. A small future UX refinement is collapsing setup after import on mobile; it is not required for the verified workflow above.
+
+## Continuation workflow and review fixes
+
+This continuation adds `.claude/workflows/formlift-continuation.js` (see [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md) section 11) and an import summary, then fixes the sixteen engineering findings that the workflow's read-only review confirmed on the earlier revision. Reference compatibility remains BLOCKED; nothing here is source evidence.
+
+- Import summary: after a successful import the Start panel lists every accepted field with its type, requirement and constraints, both routes under the imported branch (produced by the engine's own `nextTarget`), the endings, and every import note. A rejected import lists every reported issue with its path and code (the server bounds this at 30) and keeps the previous form and its summary.
+- Engine: whole-number fields reject decimal notation and signed zero instead of normalising them; the lexeme is never converted.
+- Importer: unreachable fields and imported endings that nothing routes to are rejected (`UNREACHABLE_FIELD`, `UNREACHABLE_ENDING`) rather than dropped.
+- Server: the artifact hash covers the exact request bytes; invalid UTF-8 is a 400 `INVALID_ENCODING`; request timeouts are enforced on a five-second check interval.
+- Storage and startup: `npm start` creates the data directory and opens the file before listening, so an unwritable location fails at startup; the first SIGINT/SIGTERM gives in-flight requests two seconds and a second signal drops them.
+- Client: import progress is shown and announced; text inputs enforce only the 4,096-character ceiling so a field's own limit surfaces as the engine's `TEXT_TOO_LONG` error with the input intact; focus lands on the next action after saving; definite save rejections (HTTP 4xx) are shown without the duplicate-risk note or a Retry label.
+- Tooling: the engineering and browser runners report `BLOCKED` (exit 2) when the toolchain is missing or the Node major is below `engines.node`; `npm run verify:reproducibility` performs the clean-copy install, test, start and readback check and writes `reports/reproducibility.json`; the release gate requires that report and rejects engineering, browser or reproducibility reports produced on another Node major; verification reports carry start/finish times, runtime, `planned`/`notApplicable` counts, a per-channel summary and one row per manifest case; validated cases replay even when coverage is incomplete, so a mismatch exits 1.
+
+### Verified source after the review fixes
+
+Source fingerprint: `c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a`.
+
+| Check | Actual local result on 31 October 2026 |
+| --- | --- |
+| `npm test`, including typecheck/build | 91/91 tests PASS; zero skipped |
+| `npm run test:e2e` | 7/7 PASS (original journeys plus the import summary and diagnostics journey) |
+| `npm run test:hackathon` | 4/4 PASS |
+| `npm run test:product` | 3/3 PASS |
+| `npm run verify:reproducibility` | PASS: fresh copy, `npm ci`, `npm test` (91/91), `npm start`, saved response read back |
+| Readiness / reference / release | All BLOCKED, exit 2; sole issue `MISSING_EVIDENCE` |
+
+Browser suites used Chromium 153 through the executable override on Node 24.22.1. This is synthetic local verification, not original-product compatibility.

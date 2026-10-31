@@ -1,6 +1,6 @@
 # FormLift: SDLC and implementation plan
 
-Status: historical high-level SDLC baseline, written before implementation. Reviewed 31 October 2026. The application and subsequent upgrades are now implemented and merged. Start with [ROADMAP.md](ROADMAP.md) and [IMPLEMENTATION.md](IMPLEMENTATION.md) for the current state and remaining work; preserve the existing architecture and tests.
+Status: historical high-level SDLC baseline, written before implementation. Reviewed 31 October 2026. The application and subsequent upgrades are now implemented and merged. Start with [ROADMAP.md](ROADMAP.md) and [IMPLEMENTATION.md](IMPLEMENTATION.md) for the current state and remaining work; preserve the existing architecture and tests. The original implementation run and the evidence-first continuation workflow are recorded in [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md).
 
 The original detailed implementation contracts are in [DESIGN.md](DESIGN.md), [ACCEPTANCE.md](ACCEPTANCE.md), and [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md). [HACKATHON_DESIGN.md](HACKATHON_DESIGN.md) and [PRODUCT_UPGRADE_DESIGN.md](PRODUCT_UPGRADE_DESIGN.md) specify the later additions. [START_HERE.md](START_HERE.md) preserves the original launch prompt for context. Follow current implemented contracts and the roadmap for continuation, while retaining the evidence gate.
 
@@ -158,7 +158,9 @@ Use one lead coding session. Parallel agents help with independent evidence revi
 
 In a two-agent session combine evidence and QA roles. Do not spawn separate frontend/backend/database/devops agents for this scope. No two agents edit shared files simultaneously. QA sends engine fixes to the lead rather than silently patching the system under test.
 
-Use the repository's [CLAUDE.md](../CLAUDE.md) for the agent handoff. This planning turn does not start application implementation. The later implementation session records its own start and deadline and must pass P0; elapsed planning preparation remains disclosed separately.
+Use the repository's [CLAUDE.md](../CLAUDE.md) for the agent handoff. This planning document does not start application implementation. The implementation session records its own start and deadline and must pass P0; elapsed planning preparation remains disclosed separately.
+
+One such session has been recorded (see the recorded-run table in [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md)). It built P1–P3 and the engineering half of P4–P5 against labelled synthetic fixtures; P0 did not pass, so P4's reference comparisons and P6 remain open. A follow-up run maps these to tasks C0–C5 in AGENT_WORKFLOW.md section 11 and does not reset the recorded timer.
 
 ## 7. Verification, release, and maintenance
 

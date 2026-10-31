@@ -1,17 +1,22 @@
 {
   "status": "PASS",
-  "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+  "fingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
   "classification": "SYNTHETIC_ENGINEERING_ONLY",
-  "buildFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
-  "finishedFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+  "buildFingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
+  "finishedFingerprint": "c7537d0efa845bd162d431ce747d3ee88e65c1e169fc0bc5afaa9469fcc5899a",
   "browser": {
     "engine": "chromium",
-    "version": "153.0.8010.0",
+    "version": "153.0.8010.12",
     "executable": "environment-override"
   },
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "architecture": "x64"
+  },
   "referenceCases": 0,
-  "startedAt": "2026-10-31T06:19:37.169Z",
-  "finishedAt": "2026-10-31T06:19:45.246Z",
+  "startedAt": "2026-10-31T07:52:42.316Z",
+  "finishedAt": "2026-10-31T07:52:51.139Z",
   "checks": [
     {
       "id": "UI-01",
@@ -42,12 +47,17 @@
       "id": "ENG-07",
       "status": "PASS",
       "description": "Typing over 200 characters uses committed field changes rather than one event per keystroke"
+    },
+    {
+      "id": "UI-05",
+      "status": "PASS",
+      "description": "Import summary shows fields, routes, and notes; a rejected import lists every issue and keeps the summary"
     }
   ],
   "counts": {
-    "planned": 6,
-    "executed": 6,
-    "passed": 6,
+    "planned": 7,
+    "executed": 7,
+    "passed": 7,
     "failed": 0,
     "skipped": 0,
     "infrastructureFailures": 0

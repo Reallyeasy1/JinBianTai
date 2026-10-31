@@ -38,10 +38,11 @@ The portable file includes the project MIT license. Imported form content retain
 
 ## What works
 
-- Strict import: one to six short-text, safe-integer number, or single-choice questions; one choice-based forward branch; up to two endings.
+- Strict import: one to six short-text, safe-integer number, or single-choice questions; one choice-based forward branch; up to two endings. Unreachable fields or endings are rejected, not dropped.
 - Shared browser/server navigation engine, Back/Next, input validation, and fresh respondent runs.
 - Separate draft-restoration and response-projection policies. The default retains drafts and submits only the current route.
 - Server replay, bounded requests, atomic import replacement, serialized JSONL writes, and success only after the write completes.
+- An import summary of what survived: each field with its constraints, both routes under the branch, endings, and every import note; rejected imports list every issue with its path.
 - Inspectable event history, saved answers, definition/policy hashes, and a downloadable receipt.
 - Unit, HTTP/storage, browser, and evidence-verification tools with explicit PASS / FAIL / BLOCKED outcomes.
 
@@ -57,14 +58,15 @@ npm run test:e2e
 npm run test:hackathon
 npm run test:product
 npm run benchmark
+npm run verify:reproducibility
 npm run verify:readiness
 npm run verify:reference
 npm run verify:release
 ```
 
-Browser tests need Chromium. An existing compatible executable can be selected with `CHROMIUM_EXECUTABLE_PATH`; the report records its actual version. This environment used Chromium 153.0.8010.0 because the standard browser download failed. It is not bundled with the repository.
+Browser tests need Chromium. An existing compatible executable can be selected with `CHROMIUM_EXECUTABLE_PATH`; the report records its actual version. Recorded runs used a separately provisioned Chromium 153 through that override because the standard browser download failed. It is not bundled with the repository.
 
-The three `verify:*` commands currently return **BLOCKED / exit 2** because genuine reference evidence is absent. This is intentional. Exit 0 means the command's required checks passed; exit 1 means a detected failure. Actual results are in [`reports/`](reports/). Engineering fixtures are synthetic; verifier test packages are mocks, not source captures.
+`verify:readiness`, `verify:reference`, and `verify:release` currently return **BLOCKED / exit 2** because genuine reference evidence is absent. This is intentional; `verify:reproducibility` is an engineering check and passes. Exit 0 means the command's required checks passed; exit 1 means a detected failure. Actual results are in [`reports/`](reports/). Engineering fixtures are synthetic; verifier test packages are mocks, not source captures.
 
 Release verification also requires fresh passing `reports/hackathon-browser.json` and `reports/product-browser.json` for offline, inspector, inbox and navigation behavior. `benchmark` measures 1,000 synthetic engine replays and 100 sequential localhost submissions separately, checks their answers, and reads back the actual JSONL records. Its report records runtime, fingerprints, latency, errors, counts and bytes. It does not measure source performance, production capacity, power consumption or monetary savings.
 
@@ -90,7 +92,7 @@ Use actual local source files and response IDs. Initialization creates an incomp
 | [Current roadmap and agent handoff](docs/ROADMAP.md) | Merged delivery status, remaining priorities, owners, dependencies and exit conditions |
 | [Implementation notes](docs/IMPLEMENTATION.md) | Actual architecture, API, limits, deviations, demo, and next work |
 | [Technical design](docs/DESIGN.md) | Original design contract |
-| [Agent workflow](docs/AGENT_WORKFLOW.md) | Original three-hour coordination and recovery plan |
+| [Agent workflow](docs/AGENT_WORKFLOW.md) | Three-hour coordination and recovery plan, the recorded run, and the evidence-first continuation workflow |
 | [Acceptance contract](docs/ACCEPTANCE.md) | Engineering, evidence, and release gates |
 | [Reference format](docs/REFERENCE_FORMAT.md) | Implemented evidence package and comparison interface |
 | [Capture workflow](docs/CAPTURE_WORKFLOW.md) | Private intake, independent stored-response projection, and source experiments |

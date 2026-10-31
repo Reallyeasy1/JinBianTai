@@ -38,7 +38,8 @@ Engineering is implemented. **Source compatibility and the full reference releas
 | [REFERENCE_FORMAT.md](REFERENCE_FORMAT.md) | Evidence manifest, canonical results and comparison interface |
 | [ACCEPTANCE.md](ACCEPTANCE.md) and [EVIDENCE_AND_TESTS.md](EVIDENCE_AND_TESTS.md) | Acceptance rules and independent experiment expectations |
 | [CI.md](CI.md) | Hosted checks and report boundaries |
-| [PLAN.md](PLAN.md), [DESIGN.md](DESIGN.md), [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md) | Historical rationale and original implementation contracts |
+| [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md) | Original implementation contracts, the recorded run, the evidence-first continuation tasks C0–C5, and the saved workflow script `.claude/workflows/formlift-continuation.js` |
+| [PLAN.md](PLAN.md), [DESIGN.md](DESIGN.md) | Historical rationale and original design |
 
 The original launch text predates the explicit authorization to merge PRs #4 and #5. Preserve its historical record and the original timing; do not interpret it as requiring another approval for work already authorized. A new continuation must state its actual scope and elapsed time.
 
@@ -58,7 +59,7 @@ Do E1–E4 before expanding the builder, integrations, accounts or hosting. If a
 
 ## Agent execution procedure
 
-1. **Lead establishes the baseline.** Read this roadmap and the implementation notes, inspect the branch and working tree, preserve unrelated work, and identify the selected unfinished task. Reuse passing reports only when their fingerprint matches the source. Assign exclusive file ownership before parallel edits.
+1. **Lead establishes the baseline.** Read this roadmap and the implementation notes, inspect the branch and working tree, preserve unrelated work, and identify the selected unfinished task. Reuse passing reports only when their fingerprint and Node major match the current source and runtime. Assign exclusive file ownership before parallel edits. The saved workflow `formlift-continuation` automates this inspection, the evidence gate, and a read-only engineering review; it ends BLOCKED without genuine evidence and never edits application files.
 2. **Evidence and QA establish independent expectations.** Keep original UI restoration and submitted/stored answers separate. Freeze the development/holdout allocation before the lead inspects holdout expectations. Use the real commands in the capture workflow; do not generate source expectations with FormLift's engine.
 3. **Design changes before implementation.** For an observed divergence, record the reproducer, affected policy or importer contract, intended behavior and acceptance check in the relevant design document. The lead owns backend/integration; a UI agent may own named UI files if needed; QA owns assigned tests. No overlapping ownership.
 4. **Implement the narrow correction.** Preserve unsupported-feature rejection, source/form identities, bounded persistence, snapshot consistency and missing/empty/zero semantics. A mismatch is evidence to investigate, not permission to alter the original capture.

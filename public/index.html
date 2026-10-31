@@ -31,8 +31,16 @@
           <label class="upload-zone" for="form-file"><span class="upload-icon" aria-hidden="true">↥</span><span class="upload-title">Import form JSON</span><span class="upload-hint">Supported definition · up to 256 KiB</span><input id="form-file" type="file" accept=".json,application/json"></label>
           <div class="source-actions"><button class="button secondary full" id="load-demo" type="button">Load synthetic demo</button><button class="button full" id="run-experiment" type="button">Run branch experiment <span aria-hidden="true">↗</span></button></div>
           <p class="fine-print">The experiment uses invented data. Run it on a fresh or reset demo, inspect the result, then choose whether to save.</p>
-          <p class="inline-error" id="import-error" role="alert" hidden></p>
+          <div class="inline-error" id="import-error" role="alert" hidden></div>
           <details class="import-feedback"><summary>Import details</summary><div class="import-notice" id="import-notice" aria-live="polite" hidden></div></details>
+        </section>
+        <section class="card summary-card" id="import-summary" aria-labelledby="summary-title" hidden>
+          <p class="eyebrow" id="summary-title">What survived the import</p>
+          <ol class="summary-fields" id="summary-fields"></ol>
+          <p class="summary-routing" id="summary-routing"></p>
+          <p class="summary-endings" id="summary-endings"></p>
+          <details class="summary-notes"><summary><span>Import notes</span><span class="caption" id="summary-warning-count">0 notes</span></summary><div id="summary-warnings"></div></details>
+          <p class="fine-print">Derived from the validated local model, not from Typeform. Presentation, media, and settings outside the subset are not reproduced.</p>
         </section>
         <section class="policy-card" aria-labelledby="policy-title"><p class="eyebrow" id="policy-title">Current local behavior</p><dl><div><dt>On branch return</dt><dd id="policy-restoration">Loading…</dd></div><div><dt>In the response</dt><dd id="policy-submission">Loading…</dd></div></dl></section>
         <details class="scope-card"><summary>Supported subset</summary><ul class="scope-list"><li>Short text, whole numbers, single choice</li><li>Up to six questions and one branch</li><li>Backtracking and local responses</li></ul><p class="fine-print">Unsupported behavior is rejected. One local operator; no hosted collection, accounts, integrations, or runtime AI calls.</p></details>

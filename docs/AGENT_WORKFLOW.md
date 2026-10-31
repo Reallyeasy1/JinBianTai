@@ -1,6 +1,20 @@
 # FormLift: single-launch agent workflow
 
-Status: original implementation runbook. A local engineering prototype is now built; read `IMPLEMENTATION.md` and current reports for actual state and deviations. This document itself is not proof of source compatibility. Read [DESIGN.md](DESIGN.md), [PLAN.md](PLAN.md), and [EVIDENCE_AND_TESTS.md](EVIDENCE_AND_TESTS.md) before execution. This file defines orchestration; the design defines interfaces; the evidence protocol defines what a source comparison can prove.
+Status: implementation runbook with one recorded run. Sections 1–10 are the original single-launch contract and still govern any timed run. Section 11 is the continuation workflow for the prototype that now exists: which original tasks are done, which remain, and how a follow-up evidence-first run is recorded without resetting the original timer. Read `IMPLEMENTATION.md` and `reports/` for actual state and deviations. This document itself is not proof of source compatibility. Read [DESIGN.md](DESIGN.md), [PLAN.md](PLAN.md), and [EVIDENCE_AND_TESTS.md](EVIDENCE_AND_TESTS.md) before execution. This file defines orchestration; the design defines interfaces; the evidence protocol defines what a source comparison can prove.
+
+### Recorded run
+
+| Item | Recorded value |
+| --- | --- |
+| Start / deadline (UTC) | `2026-10-31T04:39:18Z` / `2026-10-31T07:39:18Z`; retained in ignored local state and in `IMPLEMENTATION.md` |
+| Implementation revision | `8db15d8` on `main` |
+| Tested source fingerprint | `1ab083f5380dd2981e7369861587fb2aba796c3ab0293603d8b99e6a49fdc703` |
+| Reference-mode outcome | `BLOCKED_EVIDENCE`: no genuine definition, restoration observation, or response-content capture was supplied |
+| Engineering outcome | `npm test` 41/41, `test:e2e` 6/6 real Chromium journeys, clean `npm ci`/`npm test`/`npm start` PASS; classification `SYNTHETIC_ENGINEERING_ONLY` |
+| Release gate | `verify:readiness`, `verify:reference`, `verify:release` BLOCKED with exit 2; only issue `MISSING_EVIDENCE` |
+| Disclosed deviation | Engineering implementation continued after the failed evidence gate under the user's implementation request; it does not satisfy the minute-20, minute-65, or release gates |
+
+These values describe the original run only. The later merged phases (evidence intake and CI, the hackathon and product upgrades, and the continuation review) record their own fingerprints and counts in `IMPLEMENTATION.md`, and `ROADMAP.md` carries the current status. Any later change to application code, tests, fixtures, scripts, package files, or TypeScript configuration changes the fingerprint and invalidates the reports until the commands are re-run.
 
 ## 1. What “one shot” means
 
@@ -62,6 +76,8 @@ This is a small progress record maintained by the agent; do not build a workflow
 
 Before each handoff, report: task ID, files touched, frozen contract used, commands/results, blockers, and next dependency. Before resuming after interruption, read state and git status, verify the actual files, and compute the remaining time against the original deadline. Do not recreate the start time, assume a tool finished, reuse stale process handles, or rerun a successful destructive step. If the deadline has passed, package existing results and report the limit.
 
+`.formlift/` is ignored, so a fresh clone or a new machine has no state file even when a run is recorded. In that case rebuild `state.json` from the values published in `IMPLEMENTATION.md` and the recorded-run table above: same run ID, same start and deadline, current revision from `git rev-parse HEAD`, and the current source fingerprint. A missing state file is never a reason to record a new start. Note in the rebuilt state that it was reconstructed and from which documents.
+
 Only the lead changes shared contracts. A contract change gets a new version, an explicit reason, and affected test/UI owners are notified before editing continues. No silent interface drift or simultaneous edits to the same files.
 
 ## 5. Dependency graph
@@ -121,10 +137,12 @@ These commands are implemented. Use their actual reports and exits; zero genuine
 | 6 | `npm test` | Unit, parameterization, and HTTP/storage integration tests; genuine and synthetic fixtures labelled |
 | 7 | `npm run verify:reference` | Channel-specific comparisons against genuine captured expectations; zero evidence is blocked |
 | 8 | `npm run test:e2e` | Browser upload → branch → Back → submit → persisted result; only if browser tooling is available |
-| 9 | Clean start and `npm start` | Fresh installation/build/start works; replay the demo fixture without a source token |
+| 9 | `npm run verify:reproducibility` | Fresh copy, `npm ci`, `npm test`, `npm start`, one saved response read back; writes `reports/reproducibility.json` |
 | 10 | `npm run verify:release` | Aggregate actual reports and release files; cannot manufacture missing test evidence |
 
 The readiness, reference, and release scripts use exit 0 for all required checks passing, 1 for actual mismatch/error, and 2 for missing prerequisite or incomplete required verification. Standard build/test commands retain their normal nonzero failure behavior. The report records the status as well as the exit code.
+
+Implemented options that the continuation relies on: the three `verify:*` commands accept `-- --manifest <path relative to the repository>` so a package can stay under ignored `evidence/private/` until it is reviewed; without the flag they look for `evidence/public/manifest.json`. `test:e2e` honours `CHROMIUM_EXECUTABLE_PATH` when the standard Playwright download is unavailable and records the actual browser version. Every executed reference run also writes a timestamped `reports/reference-<timestamp>.json` next to the latest `reports/reference.json`. The recorded toolchain is Node 24.22.1 and npm 11.9.0 with `engines.node >= 24`; a session on another Node major must re-run the engineering commands rather than cite the recorded reports.
 
 If automated browser setup is unavailable within the bounded setup window, `test:e2e` records BLOCKED rather than PASS. Execute the manual browser checklist only when an operator/browser surface is available, record `PASS_MANUAL` separately, and disclose that automated E2E remains blocked. The full automated release gate remains BLOCKED when automated E2E is missing; a manually verified local demonstration is delivered and labelled separately. If neither is possible, do not claim an end-to-end browser demonstration. A `test:integration` alias may be exposed for convenience, but `npm test` must include the HTTP/storage checks rather than silently omit them.
 
@@ -146,6 +164,8 @@ The minimum distinguishing histories are direct Yes, direct No, changed-branch s
 
 The final report states the implementation revision, source and fixture hashes, supported features, observations versus inferences, exact command outcomes, automated versus manual checks, first held-out results, repaired regression results, unsupported inputs, resource measurements, preparation/build time, and unproven claims. Never substitute a polished screenshot for these results.
 
+The recorded run maps to this table as `BLOCKED_EVIDENCE` for the reference-mode work order. The engineering prototype delivered alongside it is reported separately as `SYNTHETIC_ENGINEERING_ONLY` in the generated reports; it is not `PROTOTYPE_ONLY`, because prototype mode was never explicitly requested, and it is not `PARTIAL_REFERENCE`, because no source-backed behavior exists. A later run that supplies evidence produces its own status; it does not upgrade the recorded one.
+
 ## 9. Repository and release behavior
 
 On an explicit implementation launch, create an isolated feature branch or worktree, preserve unrelated work, and make reviewable commits. Use the user's existing repository permissions for authorized pushes and a draft implementation PR when requested in the launch instruction. If remote access is unavailable, finish locally and report the unpushed state; do not abandon the local deliverable.
@@ -161,4 +181,68 @@ Use [START_HERE.md](START_HERE.md) for the prerequisite checklist and paste the 
 The launch instruction must explicitly activate reference mode, set the original 180-minute deadline, require this runbook and the design, authorize routine implementation/testing/fixes and reviewable branch commits, and specify whether push/draft-PR creation is authorized. It must retain the evidence gate, exclusive file ownership, exact verification reports, feature freeze, and no automatic merge or deployment of implementation.
 
 If a synthetic prototype is intentionally desired despite missing evidence, change the mode before launch through an explicit user instruction and require `PROTOTYPE_ONLY` labeling throughout. The default is `allowPrototype=false`; lack of evidence does not grant permission to change it. A prototype result is a different outcome, not a successful reference-mode run.
+
+With a prototype already in the repository, a new session does not use this launch prompt to rebuild. It uses the continuation instruction in [START_HERE.md](START_HERE.md) and follows section 11.
+
+## 11. Continuation workflow for the implemented prototype
+
+The recorded run delivered a working local prototype and no source evidence. This section tells a later session which parts of the original graph still apply and how to proceed without rewriting the recorded history. The rules in sections 1–9 stay in force; this section only maps them onto the current state.
+
+### 11.1 Run boundaries
+
+- **Same run.** Work on the same work order before the recorded deadline belongs to the recorded run. Rebuild the missing state file as described in section 4; compute remaining time from the recorded start, not from the session start.
+- **After the deadline.** The recorded run is closed with the outcome in the table above. Do not append work to it and present the result as within budget. Package, report, and stop that run.
+- **Continuation run.** An evidence-first follow-up is a separate run only when the operator explicitly authorizes a new budget. It gets its own run ID, immutable UTC start and deadline, and a preparation entry that discloses the earlier planning and implementation time. It produces its own outcome and cannot relabel the recorded one.
+- **Mode.** A continuation defaults to reference mode. If genuine evidence is still absent at its own minute 20, it ends `BLOCKED_EVIDENCE` and leaves the prototype unchanged. Engineering-only maintenance such as dependency updates, test repairs, or documentation is ordinary repository work; it is not a reference run and must not be reported as one.
+
+### 11.2 Original tasks against the recorded state
+
+| Original task | Recorded state | Continuation treatment |
+| --- | --- | --- |
+| T0 evidence gate | Not passed; no definition, restoration observation, or response-content capture | Must pass from a genuine package before anything else (C1) |
+| T1 frozen contracts | Model, event, API, storage, and comparison contracts implemented; behavior policy is the synthetic default `engineering-retain-active-v1` | Policy and normalizer are re-frozen from observations (C2); other contracts change only with a version bump and a recorded reason |
+| T2 importer and engine | Implemented; synthetic replays pass | Reused; edited only to fix an observed divergence (C3) |
+| T3 independent tests | Engineering suites exist; no independent source expectations | Expected data transcribed by QA or the operator from captures, never produced by running FormLift (C2) |
+| T4 UI and persistence | Implemented; six browser journeys pass | Reused; re-run after any application change |
+| T5 verification | Engineering PASS; reference comparison never executed | Reference comparison runs for the first time (C3, C4) |
+| T6 release | Clean install PASS; release gate BLOCKED | Release gate re-run with evidence present (C5) |
+
+### 11.3 Continuation graph
+
+```mermaid
+flowchart TD
+    C0["C0: inspect state, reports, toolchain"] --> C1["C1: evidence gate"]
+    C1 --> C2["C2: freeze policy, normalizer, split"]
+    C2 --> C3["C3: development comparison and fixes"]
+    C2 --> C4["C4: held-out evaluation"]
+    C3 --> C4
+    C4 --> C5["C5: release and handoff"]
+```
+
+| Task | Owner | Exit condition |
+| --- | --- | --- |
+| C0 | Lead | `git status` read and unrelated local changes preserved; current source fingerprint compared with the fingerprint in each report; Node and npm versions compared with the recorded toolchain. Stale or mismatched reports are re-run, never cited. |
+| C1 | Operator supplies; `formlift-evidence` reviews; lead records | Package placed under `evidence/private/` in the [REFERENCE_FORMAT.md](REFERENCE_FORMAT.md) layout. `npm run verify:readiness -- --manifest <path>` exits 0, and the evidence review confirms the named channels and that the cases discriminate the competing hypotheses. Exit 2 ends the run `BLOCKED_EVIDENCE`. Exit 1 means an invalid package: return it to the operator with the bounded diagnostics; the lead does not edit captures to make it validate. |
+| C2 | Lead; QA or operator as held-out custodian | Restoration and submission policy set from the observations and recorded with case IDs. If the observed combination is not one the implementation supports, record a contract change and implement it; never force the manifest into an inaccurate policy. Development and held-out split locked and hashed. Held-out expected files stay outside the lead's context. |
+| C3 | Lead fixes; QA re-runs | `npm run verify:reference` on development cases. Each divergence gets at most two targeted repairs in `src/` under the section 6 rules. Expected artifacts are never edited to match. `npm test` and `npm run test:e2e` return green after each fix, and the engine revision used for C4 is recorded. |
+| C4 | QA | One run against the recorded frozen revision. The timestamped `reports/reference-<timestamp>.json` from that run is kept unchanged. A failing case that later informs a repair is relabelled `regression` in a new manifest version; the earlier manifest and report remain. A second held-out claim needs new unseen captures. |
+| C5 | Lead; QA verifies | `npm run verify:release` result recorded as it is. `IMPLEMENTATION.md` validation table, README status, recorded-run table, and `reports/` updated to the new revision and fingerprint. A public manifest is published only after sanitization review. Reviewed files committed; draft PR if a remote exists, otherwise the unpushed state is reported. |
+
+When the continuation is a timed run, apply the section 6 clock: C1 by minute 20, C2 by minute 35, C3 complete with one development case matching by minute 65 and all development cases executed by minute 100, C4 by minute 140, C5 and feature freeze by minute 155, packaging to minute 180. Checkpoints are decisions, not idle time; finishing early is allowed.
+
+### 11.4 Saved workflow script
+
+`.claude/workflows/formlift-continuation.js` encodes C0, C1, C3, and a read-only engineering review as a Claude Code workflow script. It is an orchestration convenience, not a new framework: the roles, ownership, and gates are the ones above.
+
+- **What it runs.** C0 inspection (git state, report fingerprints against the current source, toolchain); C1 as a read-only `formlift-evidence` review followed by `formlift-qa` running `verify:readiness`; C3 as `formlift-qa` running `verify:reference` on development cases only when the gate passed; then four read-only review lenses (engine, server, client, tooling) whose findings each pass one adversarial refuter. It returns the gate status, the reference result if any, and the confirmed findings.
+- **What it never does.** No workflow agent edits `src/`, `public/`, `scripts/`, package files, docs, or tests, and none relabels evidence or expected data. Confirmed findings go to the lead, who fixes, re-runs the commands in section 7, and commits. Held-out evaluation (C4) is not automated; QA runs it once against the frozen revision the lead records.
+- **Concurrency.** At most two subagents run at a time, so the lead plus workers stay within the three-agent limit in section 3.
+- **Arguments.** `startedAt` (ISO timestamp, required because scripts cannot read the clock), optional `manifest` (repository-relative path to a private manifest), `skipEngineering`, and `maxFindingsPerLens` (default 6).
+- **Running it.** From a Claude Code session at the repository root, ask for the workflow by name, for example: "Run the formlift-continuation workflow with startedAt set to now." The lead records the continuation run in `.formlift/state.json` first (section 11.1) and keeps that file out of git.
+
+A workflow result with gate status `BLOCKED_EVIDENCE` is the expected outcome while no genuine captures exist. The review findings that follow are ordinary engineering input and do not change that status.
+
+### 11.5 Reporting a continuation
+
+The final report contains everything listed in section 8 plus: the recorded run ID and outcome it follows; the continuation run ID, start, deadline, and disclosed preparation; revision and fingerprint before and after; per-channel coverage with UNVERIFIED channels named; the path of the first held-out report; every regression relabel with its reason. Development pass counts, held-out pass counts, and synthetic engineering test counts are three separate totals and are never summed.
 

@@ -1,5 +1,6 @@
-import type { Branch, Field, FormModel, ImportIssue, ImportResult, Target } from './model.js';
+import type { Branch, Field, FormModel, ImportIssue, ImportResult, Scalar, Target } from './model.js';
 import { MAX_INPUT_LENGTH } from './model.js';
+import { nextTarget, reachableFields } from './engine.js';
 
 /**
  * Adapter for a strict documented subset, not a verified recovery of Typeform behavior.
@@ -105,6 +106,7 @@ export function importForm(input: unknown): ImportResult {
     } else error(`${path}.type`, 'UNSUPPORTED_FIELD_TYPE', 'Only short_text, number, and single-select multiple_choice are supported.');
   }
   const endings: Array<{ ref: string; title: string }> = [];
+  const importedEndings: Array<{ ref: string; index: number }> = [];
   if (input.thankyou_screens !== undefined && !Array.isArray(input.thankyou_screens)) error('$.thankyou_screens', 'INVALID_ENDINGS', 'Expected an array.');
   const endingRefs = new Set<string>();
   for (const [i, raw] of (Array.isArray(input.thankyou_screens) ? input.thankyou_screens.slice(0, 3) : []).entries()) {
@@ -121,8 +123,10 @@ export function importForm(input: unknown): ImportResult {
     if (p.redirect_url || (p.show_button === true && p.button_mode && p.button_mode !== 'reload')) error(`${path}.properties`, 'UNSUPPORTED_REDIRECT', 'Redirect behavior is not supported.');
     if (Object.keys(p).length || raw.attachment || raw.layout) warn(path, 'Ending decoration and action buttons are not reproduced.');
     endings.push({ ref: raw.ref, title: typeof raw.title === 'string' ? raw.title : '' });
+    importedEndings.push({ ref: raw.ref, index: i });
   }
-  if (!endingRefs.has('default')) { endings.push({ ref: 'default', title: 'Thank you' }); endingRefs.add('default'); }
+  const synthesizedDefault = !endingRefs.has('default');
+  if (synthesizedDefault) { endings.push({ ref: 'default', title: 'Thank you' }); endingRefs.add('default'); }
   if (endings.length > 2 || (Array.isArray(input.thankyou_screens) && input.thankyou_screens.length > 2)) error('$.thankyou_screens', 'ENDING_LIMIT', 'At most two endings including the default are supported.');
   const defaultNext: Record<string, Target> = Object.create(null);
   fields.forEach((f, i) => { defaultNext[f.ref] = i + 1 < fields.length ? { kind: 'field', ref: fields[i + 1]!.ref } : { kind: 'ending', ref: 'default' }; });
@@ -171,6 +175,23 @@ export function importForm(input: unknown): ImportResult {
   for (const [i, field] of fields.entries()) {
     const targets = [defaultNext[field.ref], ...(branch?.at === field.ref ? [branch.whenTrue] : [])];
     for (const target of targets) if (target?.kind === 'field' && fields.findIndex(f => f.ref === target.ref) <= i) error(`$.fields[${i}]`, 'UNSUPPORTED_BACKWARD_ROUTE', 'Only forward routing is supported; Back is a respondent action.');
+  }
+  // Every imported field and ending must lie on a route the engine can actually take; otherwise
+  // behavioral content would be dropped silently. Routes come from the shared engine, not a second walker.
+  if (!errors.length) {
+    const draft: FormModel = { schemaVersion: 1, formHash: '', title: '', fields, branch, defaultNext, endings };
+    const answerSets: Array<Record<string, Scalar>> = [{}, ...(branch ? [{ [branch.condition.field]: branch.condition.choice }] : [])];
+    const reachedFields = new Set<string>();
+    const reachedEndings = new Set<string>();
+    for (const answers of answerSets) {
+      const route = reachableFields(draft, answers);
+      route.forEach(ref => reachedFields.add(ref));
+      const end = nextTarget(draft, route[route.length - 1]!, answers);
+      if (end.kind === 'ending') reachedEndings.add(end.ref);
+    }
+    fields.forEach((f, i) => { if (!reachedFields.has(f.ref)) error(`$.fields[${i}]`, 'UNREACHABLE_FIELD', 'No supported route reaches this field, so it would be silently dropped.'); });
+    for (const ending of importedEndings) if (!reachedEndings.has(ending.ref)) error(`$.thankyou_screens[${ending.index}]`, 'UNREACHABLE_ENDING', 'No route reaches this ending. Use ref "default" for the fall-through ending or target it with a jump.');
+    if (synthesizedDefault && !reachedEndings.has('default')) endings.splice(endings.findIndex(e => e.ref === 'default'), 1);
   }
   if (errors.length) return { ok: false, errors: errors.slice(0, 30) };
   const model: FormModel = { schemaVersion: 1, formHash: '', title: input.title as string, fields, branch, defaultNext, endings };

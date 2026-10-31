@@ -1,12 +1,18 @@
-import { init, transition, reachableFields } from './engine.js';
-import type { BehaviorPolicy, EngineState, Event as EngineEvent, Field, FormModel, Presence } from './model.js';
+import { init, nextTarget, transition, reachableFields } from './engine.js';
+import { MAX_EVENTS, MAX_INPUT_LENGTH } from './model.js';
+import type { BehaviorPolicy, EngineState, Event as EngineEvent, Field, FormModel, ImportIssue, Presence, Scalar, Target } from './model.js';
 import { inspectState, inspectReplay } from './inspect.js';
 import { calculateCosts, type CostInputs } from './cost.js';
 
 type ImportResponse = {
   formHash: string; model: FormModel; policy: BehaviorPolicy; evidenceStatus: string;
-  warnings: Array<{ code: string; path: string; message: string }>;
+  warnings: ImportIssue[];
 };
+class RequestError extends Error {
+  /** status 0 means the request never produced an HTTP response, so the outcome is uncertain. */
+  constructor(message: string, public status: number, public code = '', public issues: ImportIssue[] = []) { super(message); }
+}
+const MAX_LISTED_ISSUES = 30;
 type Answer = { field: string; answer: { presence: string; value?: unknown; valueType?: string } };
 type Receipt = { responseId: string; formHash: string; receivedAt: string; answers: Answer[]; [key: string]: unknown };
 type ResultRecord = { responseId: string; receivedAt: string; answers: Array<{ field: string; answer: Presence }> };
@@ -41,7 +47,6 @@ let resultsSnapshot: ResultsSnapshot | null = null;
 let resultsGeneration = 0;
 let resultsLoading = false;
 let resultsExporting = false;
-const MAX_EVENTS = 200;
 const MAX_SUBMISSION_BYTES = 64 * 1024;
 
 function element<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text?: string): HTMLElementTagNameMap[K] {
@@ -55,9 +60,23 @@ function announce(message: string): void { $('announcer').textContent = message;
 function canStartExperiment(): boolean {
   return !model || (formSource === 'synthetic' && events.length === 0 && !dirty && !receipt);
 }
-function setImportError(message: string): void {
+function issueList(issues: ImportIssue[]): HTMLUListElement {
+  const list = element('ul', 'issue-list');
+  for (const item of issues.slice(0, MAX_LISTED_ISSUES)) {
+    const row = element('li');
+    row.append(element('code', '', item.path || '$'), element('span', '', ` ${item.message} `), element('span', 'issue-code', item.code));
+    list.append(row);
+  }
+  if (issues.length > MAX_LISTED_ISSUES) list.append(element('li', '', `${issues.length - MAX_LISTED_ISSUES} further issues are not shown.`));
+  return list;
+}
+function setImportError(message: string, issues: ImportIssue[] = []): void {
   const node = $('import-error');
-  node.textContent = message;
+  node.replaceChildren();
+  if (message) {
+    node.append(element('span', '', issues.length ? `${message} ${issues.length} ${issues.length === 1 ? 'issue' : 'issues'} reported:` : message));
+    if (issues.length) node.append(issueList(issues));
+  }
   node.hidden = !message;
 }
 
@@ -83,14 +102,77 @@ function setBusy(value: boolean): void {
 }
 
 async function requestJson(path: string, options?: RequestInit): Promise<unknown> {
-  const response = await fetch(path, options);
-  const data: unknown = await response.json();
+  let response: Response;
+  try { response = await fetch(path, options); }
+  catch { throw new RequestError('The local server could not be reached.', 0); }
+  let data: unknown;
+  try { data = await response.json(); }
+  catch { throw new RequestError(`The server reply could not be read (${response.status}).`, response.status); }
   if (!response.ok) {
-    const error = data as { error?: { message?: string; issues?: Array<{ path?: string; message?: string }> } };
-    const issues = error.error?.issues?.slice(0, 3).map(item => `${item.path || 'Form'}: ${item.message || 'Unsupported value'}`).join(' · ');
-    throw new Error([error.error?.message || `Request failed (${response.status}).`, issues].filter(Boolean).join(' '));
+    const error = data as { error?: { message?: string; code?: string; issues?: unknown } };
+    const issues = Array.isArray(error.error?.issues)
+      ? (error.error.issues as unknown[]).filter((item): item is ImportIssue => !!item && typeof item === 'object')
+        .map(item => ({ code: String(item.code ?? 'ISSUE'), path: String(item.path ?? '$'), message: String(item.message ?? 'Unsupported value') }))
+      : [];
+    throw new RequestError(error.error?.message || `Request failed (${response.status}).`, response.status, String(error.error?.code ?? ''), issues);
   }
   return data;
+}
+
+function describeField(field: Field): string {
+  const kind = field.kind === 'text' ? 'Short text' : field.kind === 'number' ? 'Number' : 'Single choice';
+  const parts = [kind, field.required ? 'Required' : 'Optional'];
+  if (field.kind === 'text') parts.push(`up to ${field.maxLength} characters`);
+  if (field.kind === 'number') {
+    if (field.integerOnly) parts.push('whole numbers');
+    if (field.min !== undefined && field.max !== undefined) parts.push(`${field.min} to ${field.max}`);
+    else if (field.min !== undefined) parts.push(`at least ${field.min}`);
+    else if (field.max !== undefined) parts.push(`at most ${field.max}`);
+  }
+  if (field.kind === 'choice') parts.push(`${field.choices.length} choices: ${field.choices.map(choice => choice.label).join(', ')}`);
+  return parts.join(' · ');
+}
+
+/** Human-readable route under the shared engine's own routing; never a second routing algorithm. */
+function describeRoute(form: FormModel, answers: Record<string, Scalar>): string {
+  const names: string[] = [];
+  let target: Target = { kind: 'field', ref: form.fields[0]!.ref };
+  while (target.kind === 'field' && names.length <= form.fields.length) {
+    const ref = target.ref;
+    names.push(form.fields.find(item => item.ref === ref)?.label || ref);
+    target = nextTarget(form, ref, answers);
+  }
+  const ending = target.kind === 'ending' ? form.endings.find(item => item.ref === target.ref) : undefined;
+  names.push(`ending “${ending?.title || target.ref}”`);
+  return names.join(' → ');
+}
+
+function renderSummary(form: FormModel | null, warnings: ImportIssue[]): void {
+  const card = $('import-summary');
+  if (!form) { card.hidden = true; return; }
+  $('summary-fields').replaceChildren(...form.fields.map(field => {
+    const row = element('li');
+    row.append(element('strong', '', field.label), element('span', 'summary-meta', describeField(field)));
+    return row;
+  }));
+  const routing = $('summary-routing');
+  routing.replaceChildren();
+  if (form.branch) {
+    const at = form.fields.find(item => item.ref === form.branch!.at);
+    const choice = at?.kind === 'choice' ? at.choices.find(item => item.ref === form.branch!.condition.choice) : undefined;
+    routing.append(
+      element('span', 'summary-label', `If “${at?.label || form.branch.at}” is “${choice?.label || form.branch.condition.choice}”`),
+      element('span', '', describeRoute(form, { [form.branch.condition.field]: form.branch.condition.choice })),
+      element('span', 'summary-label', 'Otherwise'),
+      element('span', '', describeRoute(form, {})),
+    );
+  } else {
+    routing.append(element('span', 'summary-label', 'No branching'), element('span', '', describeRoute(form, {})));
+  }
+  $('summary-endings').textContent = `${form.endings.length === 1 ? 'Ending' : 'Endings'}: ${form.endings.map(item => item.title).join(', ')}`;
+  $('summary-warning-count').textContent = `${warnings.length} ${warnings.length === 1 ? 'note' : 'notes'}`;
+  $('summary-warnings').replaceChildren(issueList(warnings));
+  card.hidden = false;
 }
 
 function renderPolicy(): void {
@@ -121,6 +203,11 @@ async function importDefinition(raw: string, source: string): Promise<boolean> {
   if (busy) return false;
   setImportError('');
   setBusy(true);
+  const notice = $('import-notice');
+  notice.replaceChildren(element('span', '', 'Importing and validating the definition…'));
+  notice.hidden = false;
+  $('form-status').textContent = 'Importing…';
+  announce('Importing form…');
   try {
     if (new TextEncoder().encode(raw).length > 256 * 1024) throw new Error('The form definition exceeds the 256 KiB local limit.');
     const result = await requestJson('/api/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: raw }) as ImportResponse;
@@ -136,21 +223,19 @@ async function importDefinition(raw: string, source: string): Promise<boolean> {
     clearResults();
     selectTask('run');
     $('workspace-description').textContent = model.title;
-    const notice = $('import-notice');
-    notice.replaceChildren(element('span', '', 'Definition loaded. Behavior remains unverified against Typeform.'));
-    if (result.warnings.length) {
-      const list = element('ul');
-      result.warnings.slice(0, 5).forEach(warning => list.append(element('li', '', warning.message)));
-      notice.append(list);
-    }
+    notice.replaceChildren(element('span', '', `Definition loaded with ${result.warnings.length} import ${result.warnings.length === 1 ? 'note' : 'notes'}. Behavior remains unverified against Typeform.`));
     notice.hidden = false;
     renderPolicy();
+    renderSummary(model, result.warnings);
     renderRunner();
     updateInspector();
     announce('Form loaded. First question ready.');
     return true;
   } catch (error) {
-    setImportError(error instanceof Error ? error.message : 'The form could not be loaded.');
+    notice.hidden = !model;
+    if (model) notice.replaceChildren(element('span', '', 'The previous definition stays loaded.'));
+    updateInspector();
+    setImportError(error instanceof Error ? error.message : 'The form could not be loaded.', error instanceof RequestError ? error.issues : []);
     return false;
   } finally {
     setBusy(false);
@@ -259,7 +344,8 @@ function renderField(field: Field): void {
     input.type = 'text';
     input.inputMode = field.kind === 'number' ? 'decimal' : 'text';
     input.autocomplete = 'off';
-    input.maxLength = field.kind === 'text' ? Math.min(field.maxLength ?? 4096, 4096) : 4096;
+    // Only the engine's hard ceiling is enforced by the browser; the field's own limit surfaces as the engine's error.
+    input.maxLength = MAX_INPUT_LENGTH;
     input.value = currentValue ?? '';
     input.placeholder = field.kind === 'number' ? 'Enter a number…' : 'Type your answer…';
     input.setAttribute('aria-labelledby', title.id);
@@ -358,12 +444,22 @@ async function submit(): Promise<void> {
     clearResults();
     renderRunner();
     announce('Response saved locally. Receipt available.');
+    focusQuestion();
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Save was not confirmed.';
-    fieldError(`${message} Your run is preserved. If the connection was interrupted, retrying may create a duplicate.`);
-    if (submitButton) submitButton.textContent = 'Retry save ↗';
+    const definite = error instanceof RequestError && error.status >= 400 && error.status < 500;
+    if (definite) {
+      const hint = error.status === 409 ? ' Reset this run or import the current form, then answer again.' : ' Nothing was saved.';
+      fieldError(`${message}${hint}`);
+      if (submitButton) submitButton.textContent = 'Save response ↗';
+    } else {
+      fieldError(`${message} Your run is preserved. The outcome is uncertain, so retrying may create a duplicate.`);
+      if (submitButton) submitButton.textContent = 'Retry save ↗';
+    }
+    announce(message);
   } finally {
     setBusy(false);
+    if (!receipt) document.getElementById('submit-response')?.focus({ preventScroll: true });
   }
 }
 

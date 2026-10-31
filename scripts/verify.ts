@@ -13,18 +13,24 @@ type Status = 'PASS' | 'FAIL' | 'BLOCKED';
 type Issue = { code: string; message: string; path?: string };
 type Expected = { answers?: unknown; observations?: unknown[] };
 type EvidenceCase = { id: string; split: string; purpose: string; capturedAt: string; channel: string; captureSha256: string; expectedSha256: string; events: Event[]; expected: Expected };
+type CaseRow = Record<string, unknown> & { id: string; status: 'ELIGIBLE' | 'PASS' | 'FAIL' | 'UNVERIFIED' | 'NOT_APPLICABLE' };
+type ChannelSummary = Record<string, { eligible: number; executed: number; passed: number; failed: number }>;
 export type VerificationReport = {
   schemaVersion: 'formlift-verification/1';
   mode: string;
   status: Status;
   exitCode: 0 | 1 | 2;
-  generatedAt: string;
+  startedAt: string;
+  finishedAt: string;
+  runtime: { node: string; platform: string; architecture: string };
   fingerprint: string;
   evidenceStatus: 'BLOCKED' | 'PROVIDED_OBSERVATIONS';
   issues: Issue[];
-  counts: { captured: number; eligible: number; executed: number; passed: number; failed: number; unverified: number };
+  /** planned: operator-declared target (plannedCases) or the manifest count; captured excludes NOT_APPLICABLE rows. */
+  counts: { planned: number; captured: number; eligible: number; executed: number; passed: number; failed: number; unverified: number; notApplicable: number };
+  channels: ChannelSummary;
   provenanceNotice: string;
-  cases?: unknown[];
+  cases: CaseRow[];
   definitionSha256?: string;
   manifestSha256?: string;
   policyId?: string;
@@ -33,6 +39,7 @@ export type VerificationReport = {
   browser?: unknown;
   hackathonBrowser?: unknown;
   productBrowser?: unknown;
+  reproducibility?: unknown;
 };
 type Readiness = { report: VerificationReport; model?: FormModel; policy?: BehaviorPolicy; cases: EvidenceCase[] };
 const isObject = (v: unknown): v is ObjectValue => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -74,19 +81,24 @@ export { sourceFingerprint } from './fingerprint.mjs';
 import { sourceFingerprint } from './fingerprint.mjs';
 
 function base(mode: string, fingerprint: string): VerificationReport {
+  const now = new Date().toISOString();
   return {
     schemaVersion: 'formlift-verification/1', mode, status: 'BLOCKED', exitCode: 2,
-    generatedAt: new Date().toISOString(), fingerprint, evidenceStatus: 'BLOCKED', issues: [],
-    counts: { captured: 0, eligible: 0, executed: 0, passed: 0, failed: 0, unverified: 0 },
+    startedAt: now, finishedAt: now, runtime: { node: process.version, platform: process.platform, architecture: process.arch },
+    fingerprint, evidenceStatus: 'BLOCKED', issues: [],
+    counts: { planned: 0, captured: 0, eligible: 0, executed: 0, passed: 0, failed: 0, unverified: 0, notApplicable: 0 },
+    channels: {}, cases: [],
     provenanceNotice: 'Artifact hashes and declared provenance are checked. This tool cannot authenticate who captured the source or independently prove the capture is genuine. No source behavior is inferred from synthetic fixtures.'
   };
 }
 
 function finish(report: VerificationReport): void {
-  const failed = report.issues.some(issue => !['MISSING_EVIDENCE', 'MISSING_ARTIFACT', 'MISSING_COVERAGE', 'MISSING_REPORT', 'INCOMPLETE_REPORT'].includes(issue.code));
+  const failed = report.issues.some(issue => !['MISSING_EVIDENCE', 'MISSING_ARTIFACT', 'MISSING_COVERAGE', 'MISSING_REPORT', 'INCOMPLETE_REPORT', 'STALE_REPORT'].includes(issue.code));
   report.status = failed ? 'FAIL' : report.issues.length ? 'BLOCKED' : 'PASS';
   report.exitCode = failed ? 1 : report.issues.length ? 2 : 0;
+  report.finishedAt = new Date().toISOString();
 }
+const nodeMajor = (version: unknown): number => typeof version === 'string' ? Number(version.replace(/^v/, '').split('.')[0]) : NaN;
 
 async function checkedArtifact(directory: string, descriptor: unknown): Promise<Buffer> {
   if (!isObject(descriptor) || !text(descriptor.path) || !validHash(descriptor.sha256)) throw new EvidenceInputError('ARTIFACT_DESCRIPTOR');
@@ -239,8 +251,17 @@ export async function verifyReadiness(root = process.cwd(), manifestPath = 'evid
   if (!Array.isArray(raw.cases) || !raw.cases.length) {
     report.issues.push({ code: 'MISSING_EVIDENCE', message: 'No captured reference cases; zero cases cannot pass.' });
   } else {
-    report.counts.captured = raw.cases.length;
+    report.counts.planned = Number.isSafeInteger(raw.plannedCases) && (raw.plannedCases as number) > 0 ? raw.plannedCases as number : raw.cases.length;
     for (const [caseIndex, item] of raw.cases.entries()) {
+      const rowId = isObject(item) && safeIdentifier(item.id) ? item.id : `case-${caseIndex + 1}`;
+      // A documented precondition failure (optional field, boundary, zero) is NOT_APPLICABLE, never a silent omission.
+      if (isObject(item) && safeIdentifier(item.id) && !ids.has(item.id) && text(item.notApplicable) && safeIdentifier(item.purpose)) {
+        ids.add(item.id);
+        report.counts.notApplicable++;
+        report.cases.push({ id: item.id, split: String(item.split ?? ''), purpose: item.purpose, status: 'NOT_APPLICABLE', reason: String(item.notApplicable).slice(0, 200) });
+        continue;
+      }
+      report.counts.captured++;
       try {
         if (!isObject(item) || !safeIdentifier(item.id) || ids.has(item.id) || !['development', 'heldout', 'regression'].includes(String(item.split)) || !timestamp(item.capturedAt) || !['ui', 'wire', 'webhook', 'stored'].includes(String(item.channel)) || !safeIdentifier(item.purpose) || !eventsValid(item.events)) throw new EvidenceInputError('CASE_SCHEMA');
         ids.add(item.id);
@@ -255,10 +276,17 @@ export async function verifyReadiness(root = process.cwd(), manifestPath = 'evid
           if (JSON.stringify(actualRefs) !== JSON.stringify(model.fields.map(field => field.ref).sort())) throw new EvidenceInputError('EXPECTED_FIELDS');
         }
         cases.push({ id: item.id, split: String(item.split), purpose: item.purpose, capturedAt: item.capturedAt, channel: String(item.channel), captureSha256: String((item.capture as ObjectValue).sha256), expectedSha256: String((item.expected as ObjectValue).sha256), events: item.events, expected: expected as Expected });
+        report.cases.push({ id: item.id, split: String(item.split), channel: String(item.channel), purpose: item.purpose, status: 'ELIGIBLE' });
       } catch (error) {
-        report.issues.push(inputIssue(error, 'INVALID_CASE', 'Case could not be validated.', isObject(item) && safeIdentifier(item.id) ? item.id : `case-${caseIndex + 1}`));
+        const issue = inputIssue(error, 'INVALID_CASE', 'Case could not be validated.', rowId);
+        report.issues.push(issue);
+        report.cases.push({ id: rowId, status: 'UNVERIFIED', code: issue.code, reason: issue.message });
       }
     }
+  }
+  for (const item of cases) {
+    const channel = report.channels[item.channel] ?? (report.channels[item.channel] = { eligible: 0, executed: 0, passed: 0, failed: 0 });
+    channel.eligible++;
   }
   if (model && policyValid) for (const item of cases) {
     if (coveredPurposes(model, policy as BehaviorPolicy, item).has(item.purpose)) purposes.add(item.purpose);
@@ -274,36 +302,36 @@ export async function verifyReadiness(root = process.cwd(), manifestPath = 'evid
 
 export async function verifyReference(root = process.cwd(), manifestPath?: string): Promise<VerificationReport> {
   const ready = await verifyReadiness(root, manifestPath);
-  const report = { ...ready.report, mode: 'reference' };
-  if (report.status !== 'PASS' || !ready.model || !ready.policy) return report;
-  report.cases = ready.cases.map(item => {
-    const identity = { id: item.id, split: item.split, channel: item.channel, capturedAt: item.capturedAt, captureSha256: item.captureSha256, expectedSha256: item.expectedSha256 };
+  const report: VerificationReport = { ...ready.report, mode: 'reference', cases: [...ready.report.cases], channels: structuredClone(ready.report.channels) };
+  // Every validated case is replayed even when coverage is incomplete, so a real mismatch is never hidden behind BLOCKED.
+  if (!ready.model || !ready.policy || !ready.cases.length) { finish(report); return report; }
+  const executed = ready.cases.map((item): CaseRow => {
+    const identity = { id: item.id, split: item.split, channel: item.channel, purpose: item.purpose, capturedAt: item.capturedAt, captureSha256: item.captureSha256, expectedSha256: item.expectedSha256 };
+    const channel = report.channels[item.channel]!;
+    report.counts.executed++; channel.executed++;
+    const fail = (error: unknown): CaseRow => { report.counts.failed++; channel.failed++; return { ...identity, status: 'FAIL', error }; };
     const result = replay(ready.model!, item.events, ready.policy!);
-    report.counts.executed++;
-    if (!result.ok) {
-      report.counts.failed++;
-      return { ...identity, status: 'FAIL', error: result.error };
-    }
+    if (!result.ok) return fail(result.error);
     const actual: Expected = {};
     if (item.expected.observations !== undefined) actual.observations = result.observations;
     if (item.expected.answers !== undefined) {
-      if (result.state.phase !== 'submitted') {
-        report.counts.failed++;
-        return { ...identity, status: 'FAIL', error: 'Response-content case did not submit' };
-      }
+      if (result.state.phase !== 'submitted') return fail('Response-content case did not submit');
       actual.answers = serializeResponse(ready.model!, result.state, ready.policy!);
     }
     const comparison = compareValues(item.expected, actual);
-    if (comparison.status === 'PASS') report.counts.passed++; else report.counts.failed++;
+    if (comparison.status === 'PASS') { report.counts.passed++; channel.passed++; } else { report.counts.failed++; channel.failed++; }
     return { ...identity, ...comparison };
   });
+  report.cases = report.cases.map(row => row.status === 'ELIGIBLE' ? executed.find(item => item.id === row.id) ?? row : row);
   if (report.counts.failed) report.issues.push({ code: 'REFERENCE_MISMATCH', message: `${report.counts.failed} independently provided reference cases did not match.` });
   finish(report);
   return report;
 }
 
 export async function verifyRelease(root = process.cwd(), manifestPath?: string): Promise<VerificationReport> {
-  const report = { ...await verifyReference(root, manifestPath), mode: 'release' };
+  const report: VerificationReport = { ...await verifyReference(root, manifestPath), mode: 'release' };
+  // Committed PASS reports count only for the same source contents and the same Node major as this run.
+  const runtimeStale = (saved: ObjectValue): boolean => !isObject(saved.runtime) || nodeMajor(saved.runtime.node) !== nodeMajor(process.version);
   for (const [name, field] of [['engineering', 'engineering'], ['e2e', 'browser'], ['hackathon-browser', 'hackathonBrowser'], ['product-browser', 'productBrowser']] as const) {
     try {
       const saved: unknown = JSON.parse(await readFile(resolve(root, `reports/${name}.json`), 'utf8'));
@@ -311,8 +339,17 @@ export async function verifyRelease(root = process.cwd(), manifestPath?: string)
       if (!isObject(saved) || saved.status !== 'PASS') report.issues.push({ code: isObject(saved) && saved.status === 'FAIL' ? 'CHECK_FAILED' : 'INCOMPLETE_REPORT', message: `${name} verification is not an automated PASS.` });
       else if (saved.fingerprint !== report.fingerprint) report.issues.push({ code: 'STALE_REPORT', message: `${name} result belongs to different source contents. Rerun it.` });
       else if (!isObject(saved.counts) || !Number.isSafeInteger(saved.counts.executed) || Number(saved.counts.executed) <= 0 || saved.counts.failed !== 0 || saved.counts.passed !== saved.counts.executed || saved.counts.skipped !== 0 || (saved.counts.planned !== undefined && saved.counts.planned !== saved.counts.executed)) report.issues.push({ code: 'INCOMPLETE_REPORT', message: `${name} report must show nonzero executed checks, every planned check passing, zero failures, and zero skipped checks.` });
+      else if (runtimeStale(saved)) report.issues.push({ code: 'STALE_REPORT', message: `${name} result was produced on a different Node major or records no runtime. Rerun it on ${process.version}.` });
     } catch { report.issues.push({ code: 'MISSING_REPORT', message: `${name} verification report unavailable.` }); }
   }
+  try {
+    const saved: unknown = JSON.parse(await readFile(resolve(root, 'reports/reproducibility.json'), 'utf8'));
+    report.reproducibility = saved;
+    if (!isObject(saved) || saved.status !== 'PASS') report.issues.push({ code: isObject(saved) && saved.status === 'FAIL' ? 'CHECK_FAILED' : 'INCOMPLETE_REPORT', message: 'reproducibility (clean install, test, start) is not a PASS.' });
+    else if (saved.fingerprint !== report.fingerprint) report.issues.push({ code: 'STALE_REPORT', message: 'reproducibility result belongs to different source contents. Rerun npm run verify:reproducibility.' });
+    else if (!Array.isArray(saved.commands) || saved.commands.length < 3 || !saved.commands.every(command => isObject(command) && command.launched === true && command.exitCode === 0)) report.issues.push({ code: 'INCOMPLETE_REPORT', message: 'reproducibility report must record launched install, test, and start commands with exit 0.' });
+    else if (runtimeStale(saved)) report.issues.push({ code: 'STALE_REPORT', message: `reproducibility result was produced on a different Node major. Rerun it on ${process.version}.` });
+  } catch { report.issues.push({ code: 'MISSING_REPORT', message: 'reproducibility verification report unavailable.' }); }
   for (const path of ['README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'package-lock.json']) {
     try { if (!(await readFile(resolve(root, path))).length) throw new Error('empty'); }
     catch { report.issues.push({ code: 'MISSING_ARTIFACT', message: `Required release artifact missing: ${path}` }); }

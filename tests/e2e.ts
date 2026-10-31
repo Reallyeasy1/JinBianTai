@@ -10,6 +10,7 @@ import { sourceFingerprint } from '../scripts/verify.js';
 // These are synthetic engineering journeys, not captured Typeform comparisons.
 type Check = { id: string; status: 'PASS' | 'FAIL'; description: string; error?: string };
 class VerificationBlocked extends Error {}
+const PLANNED_JOURNEYS = 7;
 const startedAt = new Date().toISOString();
 const fingerprint = await sourceFingerprint(process.cwd());
 const checks: Check[] = [];
@@ -36,6 +37,12 @@ function safeError(error: unknown): string {
     .replaceAll(temporary, '<test-data>')
     .replace(/\/(?:workspace|tmp|root|home|opt)\/[^\s"'<>]+/g, '<local-path>')
     .replace(/\b[A-Za-z]:\\[^\s"'<>]+/g, '<local-path>');
+}
+
+async function requireRuntime(): Promise<void> {
+  const pkg = JSON.parse(await readFile(resolve('package.json'), 'utf8')) as { engines?: { node?: string } };
+  const minimum = Number(/>=\s*(\d+)/.exec(pkg.engines?.node ?? '')?.[1] ?? 0);
+  if (Number(process.versions.node.split('.')[0]) < minimum) throw new VerificationBlocked(`Node ${minimum} or later is required; this is ${process.version}.`);
 }
 
 async function requireCurrentBuild(): Promise<void> {
@@ -86,6 +93,7 @@ async function complete(page: Page, contact: string): Promise<any> {
   await page.locator('#next-question').click();
   await page.locator('#submit-response').click();
   await page.waitForFunction(() => document.querySelector('#save-status')?.textContent === 'Saved locally');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'restart-run', 'Focus lands on the next action after saving');
   await page.locator('#tab-inspect').click();
   const receipt = JSON.parse(await page.locator('#receipt-json').textContent() || 'null');
   assert.ok(receipt?.responseId, 'Visible receipt must have an identifier');
@@ -124,6 +132,7 @@ async function check(id: string, description: string, action: (page: Page) => Pr
 }
 
 try {
+  await requireRuntime();
   await requireCurrentBuild();
   await new Promise<void>((done, reject) => {
     server.once('error', reject);
@@ -199,6 +208,11 @@ try {
       assert.equal(await page.locator('#question-title').textContent(), 'Budget?');
       assert.equal(await page.locator('#answer-input').inputValue(), 'not-a-number');
       await page.locator('#back-question').click(); await choice(page, 'no');
+      await page.locator('#answer-input').fill('x'.repeat(81));
+      await page.locator('#next-question').click();
+      await page.locator('#field-error').waitFor({ state: 'visible' });
+      assert.match(await page.locator('#field-error').textContent() || '', /at most 80 characters/);
+      assert.equal((await page.locator('#answer-input').inputValue()).length, 81, 'The browser must not truncate the original input');
       const receipt = await complete(page, 'Synthetic Validation User');
       assert.deepEqual(answer(receipt, 'budget'), { presence: 'missing' });
     });
@@ -235,6 +249,36 @@ try {
       assert.ok((await rows()).some(row => row.responseId === receipt.responseId));
     });
 
+    await check('UI-05', 'Import summary shows fields, routes, and notes; a rejected import lists every issue and keeps the summary', async page => {
+      await importFixture(page);
+      const summary = page.locator('#import-summary');
+      await summary.waitFor({ state: 'visible' });
+      const fields = await page.locator('#summary-fields li').allTextContents();
+      assert.equal(fields.length, 3);
+      assert.match(fields[0]!, /Request a quote\?.*Single choice.*Required.*2 choices: Yes, No/);
+      assert.match(fields[1]!, /Budget\?.*Number.*Required.*whole numbers.*0 to 10000/);
+      assert.match(fields[2]!, /Contact name.*Short text.*Required.*up to 80 characters/);
+      const routing = await page.locator('#summary-routing').textContent();
+      assert.match(routing || '', /If “Request a quote\?” is “No”Request a quote\? → Contact name → ending “Thank you”OtherwiseRequest a quote\? → Budget\? → Contact name → ending “Thank you”/);
+      assert.equal(await page.locator('#summary-endings').textContent(), 'Ending: Thank you');
+      const notes = await page.locator('#summary-warnings li').count();
+      assert.ok(notes >= 2, 'The adapter and local-limit notes must be listed in full');
+      assert.equal(await page.locator('#summary-warning-count').textContent(), `${notes} notes`);
+      const fixture = JSON.parse(await readFile('tests/fixtures/synthetic-form.json', 'utf8'));
+      fixture.fields[0].type = 'dropdown';
+      fixture.fields[1].validations.min_value = 1.5;
+      fixture.fields[2].title = 'Hello {{field:request}}';
+      await page.locator('#form-file').setInputFiles({ name: 'unsupported.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(fixture)) });
+      await page.locator('#import-error').waitFor({ state: 'visible' });
+      const issues = await page.locator('#import-error li').allTextContents();
+      assert.ok(issues.length >= 3, `Every reported issue is listed, got ${issues.length}`);
+      assert.ok(issues.some(text => text.includes('$.fields[0].type') && text.includes('UNSUPPORTED_FIELD_TYPE')));
+      assert.ok(issues.some(text => text.includes('$.fields[1].validations.min_value')));
+      assert.ok(issues.some(text => text.includes('$.fields[2].title') && text.includes('UNSUPPORTED_RECALL')));
+      assert.equal(await page.locator('#summary-fields li').count(), 3, 'The previous form summary is preserved after a rejected import');
+      assert.equal(await page.locator('#question-title').textContent(), 'Request a quote?');
+    });
+
     status = checks.some(result => result.status === 'FAIL') ? 'FAIL' : 'PASS';
     exit = status === 'PASS' ? 0 : 1;
   }
@@ -263,8 +307,9 @@ try {
     status, fingerprint, classification: 'SYNTHETIC_ENGINEERING_ONLY',
     buildFingerprint: buildFingerprint ?? null, finishedFingerprint: finishedFingerprint ?? null,
     browser: { engine: 'chromium', version: browserVersion ?? null, executable: process.env.CHROMIUM_EXECUTABLE_PATH ? 'environment-override' : 'playwright-default' },
+    runtime: { node: process.version, platform: process.platform, architecture: process.arch },
     referenceCases: 0, startedAt, finishedAt: new Date().toISOString(),
-    checks, counts: { planned: 6, executed: journeys.length, passed: journeys.filter(row => row.status === 'PASS').length, failed: journeys.filter(row => row.status === 'FAIL').length, skipped: Math.max(0, 6 - journeys.length), infrastructureFailures: checks.length - journeys.length },
+    checks, counts: { planned: PLANNED_JOURNEYS, executed: journeys.length, passed: journeys.filter(row => row.status === 'PASS').length, failed: journeys.filter(row => row.status === 'FAIL').length, skipped: Math.max(0, PLANNED_JOURNEYS - journeys.length), infrastructureFailures: checks.length - journeys.length },
     ...(blocker ? { blocker } : {}),
   };
   await writeFile(reportPath, JSON.stringify(report, null, 2) + '\n');

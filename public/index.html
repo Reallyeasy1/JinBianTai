@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Inspect a small branching form in a local, open-source workspace.">
+    <title>FormLift — Local form workspace</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/client.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="FormLift home"><span class="brand-mark" aria-hidden="true">f<span>↗</span></span><span>FormLift</span></a>
+      <div class="topbar-right"><span class="local-dot" aria-hidden="true"></span><span>Local workspace</span><span class="version">LAB / 01</span></div>
+    </header>
+    <main class="page">
+      <section class="hero" aria-labelledby="page-title">
+        <div><p class="eyebrow">A small form. A clear view.</p><h1 id="page-title">Move a form.<br><span>Inspect every step.</span></h1><p class="hero-copy">Import a supported questionnaire, follow its branches, and see exactly what your local response contains.</p></div>
+        <aside class="reference-status" aria-labelledby="reference-title"><div class="status-heading"><span class="status-icon" aria-hidden="true">!</span><span class="eyebrow" id="reference-title">Reference verification</span></div><p class="reference-verdict" id="reference-verdict">Blocked</p><p id="reference-description">Original Typeform observations have not been supplied. This workspace demonstrates a local behavior contract, not verified source compatibility.</p><span class="status-pill amber" id="mode-badge">Synthetic behavior policy</span></aside>
+      </section>
+
+      <div class="workspace">
+        <aside class="sidebar">
+          <section class="card import-card" aria-labelledby="import-title">
+            <div class="section-heading"><span class="step-number">01</span><h2 id="import-title">Bring a form</h2></div>
+            <label class="upload-zone" for="form-file"><span class="upload-icon" aria-hidden="true">↥</span><span class="upload-title">Choose form JSON</span><span class="upload-hint">Typeform definition · up to 256 KiB</span><input id="form-file" type="file" accept=".json,application/json"></label>
+            <div class="or-rule"><span>or explore the local example</span></div>
+            <button class="button secondary full" id="load-demo" type="button"><span>Load synthetic demo</span><span aria-hidden="true">↗</span></button>
+            <p class="fine-print">The demo uses invented data and an explicit local policy. It is not a captured Typeform result.</p>
+            <p class="inline-error" id="import-error" role="alert" hidden></p>
+            <div class="import-notice" id="import-notice" aria-live="polite" hidden></div>
+          </section>
+
+          <section class="card scope-card" aria-labelledby="scope-title"><p class="eyebrow" id="scope-title">Intentionally small</p><ul class="scope-list"><li><span aria-hidden="true">✓</span> Short text, number, single choice</li><li><span aria-hidden="true">✓</span> Up to six questions</li><li><span aria-hidden="true">✓</span> One choice-based branch</li><li><span aria-hidden="true">✓</span> Backtracking and local responses</li></ul><p class="fine-print">Unsupported behavior is rejected. No accounts, cloud services, or runtime AI calls.</p></section>
+
+          <section class="policy-card" aria-labelledby="policy-title"><p class="eyebrow" id="policy-title">Active local policy</p><dl><div><dt>On branch return</dt><dd id="policy-restoration">Loading…</dd></div><div><dt>In the response</dt><dd id="policy-submission">Loading…</dd></div></dl><p class="fine-print">These settings describe this implementation. Original behavior remains unverified.</p></section>
+        </aside>
+
+        <section class="workbench" aria-labelledby="run-title">
+          <div class="card runner-card">
+            <div class="runner-header"><div class="section-heading"><span class="step-number">02</span><h2 id="run-title">Run the questionnaire</h2></div><div class="runner-toolbar"><span class="status-pill neutral" id="form-status">No form loaded</span><button type="button" class="reset-button" id="reset-run" disabled>Reset</button></div></div>
+            <div class="runner-content" id="runner-content">
+              <div class="empty-state"><div class="route-art" aria-hidden="true"><span class="route-node large">1</span><span class="route-line"></span><span class="route-fork"><span class="route-node">2</span><span class="route-node muted">↘</span></span><span class="route-line"></span><span class="route-node large">3</span></div><p class="eyebrow">Your next experiment starts here</p><h3>A form, with room to look closer.</h3><p>Load the synthetic example or import your own supported definition. Then change an earlier answer and inspect what happens.</p><span class="empty-tag">Import → answer → backtrack → inspect</span></div>
+            </div>
+          </div>
+
+          <section class="card inspector-card" aria-labelledby="inspect-title"><div class="inspector-heading"><div class="section-heading"><span class="step-number">03</span><h2 id="inspect-title">Inspect the run</h2></div><span class="caption" id="event-count">0 events</span></div><div class="inspector-metrics"><div><span class="metric-label">Definition</span><strong id="definition-name">Not loaded</strong></div><div><span class="metric-label">Questions</span><strong id="question-count">—</strong></div><div><span class="metric-label">Local response</span><strong id="save-status">Not submitted</strong></div></div><details id="trace-details"><summary><span>Accepted event history</span><span class="caption">Inspect JSON</span></summary><pre id="event-trace" tabindex="0">No events yet.</pre></details><details id="receipt-details" hidden><summary><span>Saved response receipt</span><span class="caption">Inspect JSON</span></summary><pre id="receipt-json" tabindex="0"></pre></details><p class="inspector-note"><span aria-hidden="true">ⓘ</span> A successful local save is engineering evidence. Matching Typeform requires independently captured source results.</p></section>
+        </section>
+      </div>
+      <footer class="footer"><span>FormLift <span class="footer-dot">·</span> A narrow, inspectable replacement</span><span>Runs locally. Evidence stays explicit.</span></footer>
+      <div class="sr-only" id="announcer" aria-live="polite"></div>
+    </main>
+  </body>
+</html>

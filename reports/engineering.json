@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "formlift-engineering/1",
+  "status": "PASS",
+  "fingerprint": "1ab083f5380dd2981e7369861587fb2aba796c3ab0293603d8b99e6a49fdc703",
+  "classification": "SYNTHETIC_ENGINEERING_ONLY",
+  "referenceCases": 0,
+  "startedAt": "2026-10-31T05:04:15.992Z",
+  "finishedAt": "2026-10-31T05:04:17.564Z",
+  "runtime": {
+    "node": "v24.22.1",
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "counts": {
+    "executed": 41,
+    "passed": 41,
+    "failed": 0,
+    "skipped": 0
+  },
+  "commands": [
+    {
+      "command": "npm run typecheck",
+      "startedAt": "2026-10-31T05:04:16.012Z",
+      "finishedAt": "2026-10-31T05:04:16.472Z",
+      "exitCode": 0,
+      "signal": null,
+      "launched": true
+    },
+    {
+      "command": "npm run build",
+      "startedAt": "2026-10-31T05:04:16.472Z",
+      "finishedAt": "2026-10-31T05:04:17.133Z",
+      "exitCode": 0,
+      "signal": null,
+      "launched": true
+    },
+    {
+      "command": "node --test --test-reporter=tap dist/tests/server.test.js dist/tests/unit.test.js dist/tests/verification.test.js",
+      "startedAt": "2026-10-31T05:04:17.149Z",
+      "finishedAt": "2026-10-31T05:04:17.555Z",
+      "exitCode": 0,
+      "signal": null,
+      "launched": true
+    }
+  ]
+}

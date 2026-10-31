@@ -1,5 +1,7 @@
 # FormLift: single-launch implementation work order
 
+Continuation note: a local engineering prototype now exists. First read `docs/IMPLEMENTATION.md` and current reports. Preserve implemented work; obtain genuine source evidence and continue verification rather than rebuilding. The original work order below retains its evidence gates.
+
 Implement FormLift in this repository now. Coordinate the full SDLC through implementation, verification, fixes, and packaging within 180 minutes. This is an execution instruction; do not stop after proposing another plan. Use the available Fable model selected in this Claude Code session and preserve existing user work.
 
 Read `CLAUDE.md`, `docs/DESIGN.md`, `docs/AGENT_WORKFLOW.md`, `docs/ACCEPTANCE.md`, and `docs/EVIDENCE_AND_TESTS.md`. Follow their concrete contracts. Earlier high-level planning is background. Resolve conflicts using the precedence in CLAUDE.md; record evidence-driven adjustments without silently expanding scope.
@@ -17,3 +19,4 @@ Run the planned checks after implementing them: readiness, typecheck/build, unit
 Follow the original checkpoints and bounded fix loop. Cut optional scope if late; preserve verification. Freeze features at minute 155. By minute 180 return the actual working subset or failure, changed files/revision, commands and outcomes, exact pass/fail/blocked counts, source evidence and limitations, dependency/license status, measured costs if available, and the demo instructions.
 
 Proceed autonomously on reversible work already within this request. Do not request routine phase approvals. Respect actual tool permission blocks and ask only for indispensable missing inputs or actions outside the authorized scope. Commit only reviewed non-sensitive files. Open a draft implementation PR if GitHub access is available; otherwise provide the local branch and reviewable changes. Do not merge application code, deploy, spend on a subscription, or send messages to other people under this work order.
+

@@ -1,6 +1,6 @@
 # Start FormLift in one agent session
 
-Status: implementation handoff, not an implemented application. No source behavior or application tests have been verified yet.
+Status: local engineering implementation available. Read [IMPLEMENTATION.md](IMPLEMENTATION.md), README, and current reports first. Source compatibility remains BLOCKED. The workflow below is the original launch contract; extend the existing code rather than rebuilding it. Preserve the original deadline when resuming the same run.
 
 ## What one launch means
 
@@ -33,7 +33,7 @@ Open Claude Code at the repository root with your chosen available model. Start 
 
 > Execute docs/PROMPT.md as the FormLift implementation work order. Follow CLAUDE.md, docs/DESIGN.md, docs/AGENT_WORKFLOW.md, and docs/ACCEPTANCE.md. Use the configured formlift-evidence and formlift-qa agents where available. Start the 180-minute clock now, continue through implementation and testing without routine approval pauses, and deliver actual results. Missing source evidence must stay BLOCKED. Do not merge or deploy the implementation.
 
-This is a prompt to execute, not a slash command or an installed orchestration program. The named npm commands in the design are acceptance contracts for the implementation agent to create; they do not run in this planning-only repository yet.
+This is a prompt to execute, not a slash command or an installed orchestration program. The named npm commands are implemented. Reference commands intentionally return BLOCKED when source captures are missing.
 
 ## What the agent reads and does
 
@@ -56,3 +56,4 @@ The lead owns application code and integration. `formlift-evidence` reviews evid
 - An implementation branch and, when GitHub access is available, a draft PR for review. This launch does not authorize deployment or merging application code.
 
 No numerical accuracy, savings, or test counts are guaranteed in advance. The final result must distinguish a usable local prototype from a verified compatibility result.
+

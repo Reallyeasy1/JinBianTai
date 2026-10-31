@@ -1,0 +1,55 @@
+{
+  "status": "PASS",
+  "fingerprint": "1ab083f5380dd2981e7369861587fb2aba796c3ab0293603d8b99e6a49fdc703",
+  "classification": "SYNTHETIC_ENGINEERING_ONLY",
+  "buildFingerprint": "1ab083f5380dd2981e7369861587fb2aba796c3ab0293603d8b99e6a49fdc703",
+  "finishedFingerprint": "1ab083f5380dd2981e7369861587fb2aba796c3ab0293603d8b99e6a49fdc703",
+  "browser": {
+    "engine": "chromium",
+    "version": "153.0.8010.0",
+    "executable": "environment-override"
+  },
+  "referenceCases": 0,
+  "startedAt": "2026-10-31T05:04:35.051Z",
+  "finishedAt": "2026-10-31T05:04:41.872Z",
+  "checks": [
+    {
+      "id": "UI-01",
+      "status": "PASS",
+      "description": "Upload, included route, keyboard navigation, zero, and persisted receipt"
+    },
+    {
+      "id": "UI-02",
+      "status": "PASS",
+      "description": "Branch return restores the draft; final inactive branch is absent from saved answers"
+    },
+    {
+      "id": "UI-03",
+      "status": "PASS",
+      "description": "Rejected import preserves the running form and draft input"
+    },
+    {
+      "id": "UI-04",
+      "status": "PASS",
+      "description": "Invalid numeric input remains correctable and Back can leave it"
+    },
+    {
+      "id": "SAFE-01",
+      "status": "PASS",
+      "description": "Imported HTML-like labels render inertly with no image execution or external fetch"
+    },
+    {
+      "id": "ENG-07",
+      "status": "PASS",
+      "description": "Typing over 200 characters uses committed field changes rather than one event per keystroke"
+    }
+  ],
+  "counts": {
+    "planned": 6,
+    "executed": 6,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "infrastructureFailures": 0
+  }
+}

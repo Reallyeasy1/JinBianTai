@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "formlift-reproducibility/1",
+  "status": "PASS",
+  "classification": "SYNTHETIC_ENGINEERING_ONLY",
+  "referenceCases": 0,
+  "startedAt": "2026-10-31T05:04:27.038908+00:00",
+  "commands": [
+    {
+      "command": "npm ci",
+      "exitCode": 0
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0
+    },
+    {
+      "command": "npm start",
+      "startup": "PASS",
+      "smoke": "GET status/page; POST import/response; actual JSONL readback",
+      "referenceStatus": "BLOCKED"
+    }
+  ],
+  "fingerprint": "1ab083f5380dd2981e7369861587fb2aba796c3ab0293603d8b99e6a49fdc703",
+  "engineeringCounts": {
+    "executed": 41,
+    "passed": 41,
+    "failed": 0,
+    "skipped": 0
+  },
+  "finishedAt": "2026-10-31T05:04:30.876337+00:00"
+}

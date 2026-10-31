@@ -90,7 +90,7 @@ Use actual local source files and response IDs. Initialization creates an incomp
 | [Current roadmap and agent handoff](docs/ROADMAP.md) | Merged delivery status, remaining priorities, owners, dependencies and exit conditions |
 | [Implementation notes](docs/IMPLEMENTATION.md) | Actual architecture, API, limits, deviations, demo, and next work |
 | [Technical design](docs/DESIGN.md) | Original design contract |
-| [Agent workflow](docs/AGENT_WORKFLOW.md) | Original three-hour coordination and recovery plan |
+| [Agent workflow](docs/AGENT_WORKFLOW.md) | Three-hour coordination and recovery plan, the recorded run, and the evidence-first continuation workflow |
 | [Acceptance contract](docs/ACCEPTANCE.md) | Engineering, evidence, and release gates |
 | [Reference format](docs/REFERENCE_FORMAT.md) | Implemented evidence package and comparison interface |
 | [Capture workflow](docs/CAPTURE_WORKFLOW.md) | Private intake, independent stored-response projection, and source experiments |

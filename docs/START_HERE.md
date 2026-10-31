@@ -39,6 +39,14 @@ Open Claude Code at the repository root with your chosen available model. Start 
 
 This is a prompt to execute, not a slash command or an installed orchestration program. The named npm commands are implemented. Reference commands intentionally return BLOCKED when source captures are missing.
 
+### Continuing with the existing prototype
+
+The implementation run is already recorded (start, deadline, revision, and outcome are in the recorded-run table of [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md)). Do not use the launch prompt above to rebuild. Place the evidence package under `evidence/private/` in the [REFERENCE_FORMAT.md](REFERENCE_FORMAT.md) layout, then start a fresh session with:
+
+> Continue FormLift under docs/AGENT_WORKFLOW.md section 11. The recorded run and its timer are not reset. Treat this as a new continuation run with a 180-minute budget starting now, in reference mode, and record its own start and deadline with the earlier preparation disclosed. Run C0 and C1 first; if `verify:readiness` on the supplied manifest does not exit 0 by minute 20, stop with BLOCKED_EVIDENCE and leave the prototype unchanged. Never derive expected results from FormLift. Do not merge or deploy.
+
+Omit the new budget sentence if you are resuming inside the recorded run before its deadline; the agent then rebuilds the ignored state file from the published values and works against the original deadline.
+
 ## What the agent reads and does
 
 1. [CLAUDE.md](../CLAUDE.md): short repository rules and document precedence.

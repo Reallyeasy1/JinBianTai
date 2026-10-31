@@ -1,6 +1,8 @@
 # FormLift: SDLC and implementation plan
 
-Status: proposed; planning only. Reviewed 31 October 2026.
+Status: initial high-level SDLC baseline; planning only. Reviewed 31 October 2026.
+
+The current detailed implementation contracts are in [DESIGN.md](DESIGN.md), [ACCEPTANCE.md](ACCEPTANCE.md), and [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md). Start with [START_HERE.md](START_HERE.md) and use the canonical [PROMPT.md](PROMPT.md) for an implementation launch. These documents refine this baseline; follow their concrete interfaces, command semantics, and default evidence gate.
 
 This plan develops finalist 1 from the three-hour strategy. Repository inspection found an empty public repository with no code, tests, license, open issues, or pull requests. No existing architecture needs to be preserved. The planning change introduces documentation only.
 
@@ -61,7 +63,7 @@ Test at least these alternatives:
 
 These are competing hypotheses, not an exhaustive description of all possible behavior. UI restoration, browser submission payload, and stored response are different observations. Do not infer one from another.
 
-**Minute-20 gate:** obtain a real definition, an executable reference, a recorded changed-branch observation, and an accessible capture route that distinguishes the selected hypotheses. At least one real response-content observation is required before claiming submission compatibility. A repeatable UI-only result may support a narrower UI claim if response capture remains unavailable.
+**Minute-20 gate:** obtain a real definition, an executable reference, a recorded changed-branch observation, and an accessible capture route that distinguishes the selected hypotheses. The default reference-mode launch requires a real response-content observation before the gate passes. A separately authorized UI-only investigation may support a narrower UI claim if response capture remains unavailable; it must not silently guess the submission policy.
 
 The Responses API warns that recent results may be delayed by about 30 minutes [S3]. Do not spend the evidence window polling it. Prefer an existing authorized result capture, a readable owned-session submission trace, or an already available authorized webhook receiver. A webhook requires a reachable endpoint; localhost alone does not provide one. Do not build tunnel infrastructure as the default plan.
 
@@ -194,3 +196,4 @@ After the hackathon, maintenance means adding a new source capture and regressio
 - [S3: Typeform — retrieve responses](https://www.typeform.com/developers/responses/reference/retrieve-responses/), checked 31 October 2026. Includes the recent-response delay warning.
 - [S4: Typeform — personal access token](https://www.typeform.com/developers/get-started/personal-access-token/), checked 31 October 2026. API access and scoped credential handling.
 - Prior brief: *Autonomous SG 2026 — Three-Hour Fable Strategy*, finalist 1 and execution plan, pages 9 and 12–16. This plan narrows the first demonstration to one ending and distinguishes UI restoration from submission contents.
+

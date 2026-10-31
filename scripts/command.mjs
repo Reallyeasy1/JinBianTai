@@ -34,8 +34,17 @@ export function unlaunched(label, args, error) {
   return { command: [label, ...args].join(' '), startedAt: now, finishedAt: now, exitCode: null, signal: null, launched: false, launchError: error };
 }
 
-/** Exit 0 complete success; 1 a command ran and detected failure; 2 a required command could not launch. */
-export function outcome(commands, passed) {
+/**
+ * Exit 0 complete success; 1 a command ran and detected failure; 2 blocked or incomplete
+ * (a required command could not launch, or checks ran without failures but some were skipped).
+ */
+export function outcome(commands, passed, incomplete = false) {
   if (commands.some(command => !command.launched)) return { status: 'BLOCKED', exitCode: 2 };
-  return passed ? { status: 'PASS', exitCode: 0 } : { status: 'FAIL', exitCode: 1 };
+  if (passed) return { status: 'PASS', exitCode: 0 };
+  return incomplete ? { status: 'BLOCKED', exitCode: 2 } : { status: 'FAIL', exitCode: 1 };
+}
+
+/** Test totals with zero failures where every non-passing test was skipped: incomplete, not failed. */
+export function onlySkipped(exitCode, counts) {
+  return exitCode === 0 && counts.executed > 0 && counts.failed === 0 && counts.skipped > 0 && counts.passed + counts.skipped === counts.executed;
 }

@@ -1,12 +1,14 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { sourceFingerprint } from './fingerprint.mjs';
-import { outcome, resolveNpm, runCommand, unlaunched } from './command.mjs';
+import { onlySkipped, outcome, resolveNpm, runCommand, unlaunched } from './command.mjs';
 
 // Keep the release input reproducible: only executed checks can produce PASS.
-// Exit 0 PASS; exit 1 FAIL (a check ran and failed); exit 2 BLOCKED (a required command could not launch).
+// Exit 0 PASS; exit 1 FAIL (a check ran and failed); exit 2 BLOCKED (a required command could not launch,
+// or tests ran without failures but some were skipped, so coverage is incomplete).
 const startedAt = new Date().toISOString();
 const commands = [];
 let passed = false;
+let incomplete = false;
 let fingerprint = null;
 let counts = { executed: 0, passed: 0, failed: 0, skipped: 0 };
 class Blocked extends Error {}
@@ -37,13 +39,14 @@ try {
   const result = run(process.execPath, ['--test', '--test-reporter=tap', ...files], 'node');
   const metric = label => Number(result.stdout.match(new RegExp(`^# ${label} (\\d+)$`, 'm'))?.[1] ?? -1);
   counts = { executed: metric('tests'), passed: metric('pass'), failed: metric('fail'), skipped: metric('skipped') };
+  if (onlySkipped(result.status, counts)) { incomplete = true; throw new Error(`Engineering tests incomplete: ${counts.skipped} skipped, none failed.`); }
   if (result.status !== 0 || counts.executed <= 0 || counts.passed !== counts.executed || counts.failed !== 0 || counts.skipped !== 0) throw new Error('Engineering tests failed or were incomplete.');
   if (await sourceFingerprint() !== fingerprint) throw new Error('Source changed during verification.');
   passed = true;
 } catch (error) {
   console.error(error instanceof Error ? error.message : 'Engineering verification could not complete.');
 }
-const { status, exitCode } = outcome(commands, passed);
+const { status, exitCode } = outcome(commands, passed, incomplete);
 await mkdir('reports', { recursive: true });
 const report = { schemaVersion: 'formlift-engineering/1', status, fingerprint, classification: 'SYNTHETIC_ENGINEERING_ONLY', referenceCases: 0, startedAt, finishedAt: new Date().toISOString(), runtime: { node: process.version, platform: process.platform, architecture: process.arch }, counts, commands };
 await writeFile('reports/engineering.json', JSON.stringify(report, null, 2) + '\n');

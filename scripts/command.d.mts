@@ -11,4 +11,5 @@ export function runCommand(command: string, args: string[], options?: { label?: 
   record: CommandRecord; stdout: string; stderr: string; status: number | null;
 };
 export function unlaunched(label: string, args: string[], error: LaunchError): CommandRecord;
-export function outcome(commands: CommandRecord[], passed: boolean): { status: 'PASS' | 'FAIL' | 'BLOCKED'; exitCode: 0 | 1 | 2 };
+export function outcome(commands: CommandRecord[], passed: boolean, incomplete?: boolean): { status: 'PASS' | 'FAIL' | 'BLOCKED'; exitCode: 0 | 1 | 2 };
+export function onlySkipped(exitCode: number | null, counts: { executed: number; passed: number; failed: number; skipped: number }): boolean;

@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { outcome, resolveNpm, runCommand, unlaunched } from '../scripts/command.mjs';
+import { onlySkipped, outcome, resolveNpm, runCommand, unlaunched } from '../scripts/command.mjs';
 
 test('npm resolves to the CLI script through Node on Windows, never npm.cmd', () => {
   const viaEnv = resolveNpm({ platform: 'win32', env: { npm_execpath: 'C:\\npm\\bin\\npm-cli.js' }, execPath: 'C:\\node\\node.exe', exists: () => true });
@@ -40,6 +40,17 @@ test('a command that cannot launch is BLOCKED with its actual error, not a failu
   assert.deepEqual(outcome([result.record], true), { status: 'BLOCKED', exitCode: 2 });
   const unresolved = unlaunched('npm', ['run', 'typecheck'], { code: 'NPM_NOT_FOUND', message: 'missing' });
   assert.deepEqual(outcome([unresolved], false), { status: 'BLOCKED', exitCode: 2 });
+});
+
+test('skipped tests with no failures are incomplete (BLOCKED/2); any failure stays FAIL/1', () => {
+  assert.equal(onlySkipped(0, { executed: 88, passed: 86, failed: 0, skipped: 2 }), true);
+  assert.equal(onlySkipped(1, { executed: 88, passed: 85, failed: 1, skipped: 2 }), false);
+  assert.equal(onlySkipped(0, { executed: 88, passed: 88, failed: 0, skipped: 0 }), false);
+  assert.equal(onlySkipped(0, { executed: 0, passed: 0, failed: 0, skipped: 0 }), false);
+  assert.equal(onlySkipped(0, { executed: -1, passed: -1, failed: -1, skipped: -1 }), false);
+  const ran = runCommand(process.execPath, ['-e', 'process.exit(0)'], { label: 'node' });
+  assert.deepEqual(outcome([ran.record], false, true), { status: 'BLOCKED', exitCode: 2 });
+  assert.deepEqual(outcome([ran.record], false, false), { status: 'FAIL', exitCode: 1 });
 });
 
 test('a command that runs and fails is FAIL; complete success is PASS', () => {

@@ -86,12 +86,14 @@ async function complete(page: Page, contact: string): Promise<any> {
   await page.locator('#next-question').click();
   await page.locator('#submit-response').click();
   await page.waitForFunction(() => document.querySelector('#save-status')?.textContent === 'Saved locally');
+  await page.locator('#tab-inspect').click();
   const receipt = JSON.parse(await page.locator('#receipt-json').textContent() || 'null');
   assert.ok(receipt?.responseId, 'Visible receipt must have an identifier');
   const persisted = await rows();
   const record = persisted.find(row => row.responseId === receipt.responseId);
   assert.ok(record, 'Browser receipt must correspond to an actual persisted JSONL record');
   assert.deepEqual(record.answers, receipt.answers);
+  await page.locator('#tab-run').click();
   return receipt;
 }
 
@@ -150,8 +152,10 @@ try {
       const receipt = await complete(page, 'Synthetic Browser User');
       assert.deepEqual(answer(receipt, 'budget'), { presence: 'value', valueType: 'number', value: 0 });
       assert.equal(await page.locator('#reference-verdict').textContent(), 'Blocked');
+      await page.locator('#tab-inspect').click();
       await page.locator('#receipt-details').evaluate(element => { (element as HTMLDetailsElement).open = true; });
       await page.screenshot({ path: join(privateArtifacts, 'desktop.png'), fullPage: true });
+      await page.locator('#tab-run').click();
       await page.locator('#restart-run').click();
       await choice(page, 'yes');
       assert.equal(await page.locator('#answer-input').inputValue(), '', 'A fresh respondent run cannot inherit the previous budget');
@@ -171,6 +175,7 @@ try {
       await choice(page, 'no');
       const receipt = await complete(page, 'Synthetic Branch User');
       assert.deepEqual(answer(receipt, 'budget'), { presence: 'missing' });
+      await page.locator('#tab-inspect').click();
       const history = JSON.parse(await page.locator('#event-trace').textContent() || '[]');
       assert.ok(history.some((event: any) => event.type === 'set' && event.field === 'budget' && event.input === '500'));
     });
@@ -222,6 +227,7 @@ try {
       await page.locator('#next-question').click();
       await page.locator('#submit-response').click();
       await page.waitForFunction(() => document.querySelector('#save-status')?.textContent === 'Saved locally');
+      await page.locator('#tab-inspect').click();
       const receipt = JSON.parse(await page.locator('#receipt-json').textContent() || 'null');
       assert.deepEqual(answer(receipt, 'contact'), { presence: 'value', valueType: 'string', value: input });
       const history = JSON.parse(await page.locator('#event-trace').textContent() || '[]');

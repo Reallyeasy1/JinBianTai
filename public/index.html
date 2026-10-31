@@ -1,54 +1,88 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Inspect a small branching form in a local, open-source workspace.">
-    <title>FormLift — Local form workspace</title>
-    <link rel="stylesheet" href="/styles.css">
-    <script type="module" src="/client.js"></script>
-  </head>
-  <body>
-    <header class="topbar">
-      <a class="brand" href="/" aria-label="FormLift home"><span class="brand-mark" aria-hidden="true">f<span>↗</span></span><span>FormLift</span></a>
-      <div class="topbar-right"><span class="local-dot" aria-hidden="true"></span><span>Local workspace</span><span class="version">LAB / 01</span></div>
-    </header>
-    <main class="page">
-      <section class="hero" aria-labelledby="page-title">
-        <div><p class="eyebrow">A small form. A clear view.</p><h1 id="page-title">Move a form.<br><span>Inspect every step.</span></h1><p class="hero-copy">Import a supported questionnaire, follow its branches, and see exactly what your local response contains.</p></div>
-        <aside class="reference-status" aria-labelledby="reference-title"><div class="status-heading"><span class="status-icon" aria-hidden="true">!</span><span class="eyebrow" id="reference-title">Reference verification</span></div><p class="reference-verdict" id="reference-verdict">Blocked</p><p id="reference-description">Original Typeform observations have not been supplied. This workspace demonstrates a local behavior contract, not verified source compatibility.</p><span class="status-pill amber" id="mode-badge">Synthetic behavior policy</span></aside>
-      </section>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Run a branching form, inspect its behavior, and keep your responses in a local workspace.">
+  <title>FormLift — Your local form workspace</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/client.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="FormLift home"><span class="brand-mark" aria-hidden="true">f<span>↗</span></span>FormLift</a>
+    <div class="topbar-actions"><span class="local-label"><span class="local-dot" aria-hidden="true"></span>Local workspace</span><button class="button export-button" id="export-offline" type="button" disabled>Export offline HTML <span aria-hidden="true">↓</span></button></div>
+  </header>
 
-      <div class="workspace">
-        <aside class="sidebar">
-          <section class="card import-card" aria-labelledby="import-title">
-            <div class="section-heading"><span class="step-number">01</span><h2 id="import-title">Bring a form</h2></div>
-            <label class="upload-zone" for="form-file"><span class="upload-icon" aria-hidden="true">↥</span><span class="upload-title">Choose form JSON</span><span class="upload-hint">Typeform definition · up to 256 KiB</span><input id="form-file" type="file" accept=".json,application/json"></label>
-            <div class="or-rule"><span>or explore the local example</span></div>
-            <button class="button secondary full" id="load-demo" type="button"><span>Load synthetic demo</span><span aria-hidden="true">↗</span></button>
-            <p class="fine-print">The demo uses invented data and an explicit local policy. It is not a captured Typeform result.</p>
-            <p class="inline-error" id="import-error" role="alert" hidden></p>
-            <div class="import-notice" id="import-notice" aria-live="polite" hidden></div>
-          </section>
+  <main class="page">
+    <section class="workspace-heading" aria-labelledby="page-title">
+      <div><p class="eyebrow">Your form. Every branch. One clear view.</p><h1 id="page-title">A workspace for forms<br class="mobile-break"> you can understand.</h1><p class="workspace-description" id="workspace-description">Run a questionnaire, inspect what it remembers, and take it offline.</p></div>
+      <div class="workspace-stamp" aria-hidden="true"><span>LOCAL FIRST</span><strong>01 / WORKSPACE</strong></div>
+    </section>
+    <details class="evidence-note" id="evidence-details">
+      <summary><span class="evidence-dot" aria-hidden="true"></span><span>Typeform verification: <strong id="reference-verdict">Blocked</strong></span><span class="disclosure-label">Evidence &amp; scope</span></summary>
+      <div class="evidence-content"><p id="reference-description">Original Typeform observations have not been supplied. This workspace demonstrates a local behavior contract, not verified source compatibility.</p><span class="status-pill amber" id="mode-badge">Synthetic behavior policy</span><p>Offline exports contain the form definition and local engine, never earlier answers. Offline responses require explicit JSON downloads and do not automatically enter this workspace.</p></div>
+    </details>
 
-          <section class="card scope-card" aria-labelledby="scope-title"><p class="eyebrow" id="scope-title">Intentionally small</p><ul class="scope-list"><li><span aria-hidden="true">✓</span> Short text, number, single choice</li><li><span aria-hidden="true">✓</span> Up to six questions</li><li><span aria-hidden="true">✓</span> One choice-based branch</li><li><span aria-hidden="true">✓</span> Backtracking and local responses</li></ul><p class="fine-print">Unsupported behavior is rejected. No accounts, cloud services, or runtime AI calls.</p></section>
-
-          <section class="policy-card" aria-labelledby="policy-title"><p class="eyebrow" id="policy-title">Active local policy</p><dl><div><dt>On branch return</dt><dd id="policy-restoration">Loading…</dd></div><div><dt>In the response</dt><dd id="policy-submission">Loading…</dd></div></dl><p class="fine-print">These settings describe this implementation. Original behavior remains unverified.</p></section>
-        </aside>
-
-        <section class="workbench" aria-labelledby="run-title">
-          <div class="card runner-card">
-            <div class="runner-header"><div class="section-heading"><span class="step-number">02</span><h2 id="run-title">Run the questionnaire</h2></div><div class="runner-toolbar"><span class="status-pill neutral" id="form-status">No form loaded</span><button type="button" class="reset-button" id="reset-run" disabled>Reset</button></div></div>
-            <div class="runner-content" id="runner-content">
-              <div class="empty-state"><div class="route-art" aria-hidden="true"><span class="route-node large">1</span><span class="route-line"></span><span class="route-fork"><span class="route-node">2</span><span class="route-node muted">↘</span></span><span class="route-line"></span><span class="route-node large">3</span></div><p class="eyebrow">Your next experiment starts here</p><h3>A form, with room to look closer.</h3><p>Load the synthetic example or import your own supported definition. Then change an earlier answer and inspect what happens.</p><span class="empty-tag">Import → answer → backtrack → inspect</span></div>
-            </div>
-          </div>
-
-          <section class="card inspector-card" aria-labelledby="inspect-title"><div class="inspector-heading"><div class="section-heading"><span class="step-number">03</span><h2 id="inspect-title">Inspect the run</h2></div><span class="caption" id="event-count">0 events</span></div><div class="inspector-metrics"><div><span class="metric-label">Definition</span><strong id="definition-name">Not loaded</strong></div><div><span class="metric-label">Questions</span><strong id="question-count">—</strong></div><div><span class="metric-label">Local response</span><strong id="save-status">Not submitted</strong></div></div><details id="trace-details"><summary><span>Accepted event history</span><span class="caption">Inspect JSON</span></summary><pre id="event-trace" tabindex="0">No events yet.</pre></details><details id="receipt-details" hidden><summary><span>Saved response receipt</span><span class="caption">Inspect JSON</span></summary><pre id="receipt-json" tabindex="0"></pre></details><p class="inspector-note"><span aria-hidden="true">ⓘ</span> A successful local save is engineering evidence. Matching Typeform requires independently captured source results.</p></section>
+    <div class="workspace">
+      <aside class="sidebar" aria-label="Form setup">
+        <section class="card import-card" aria-labelledby="import-title">
+          <div class="section-heading"><span class="step-number">01</span><h2 id="import-title">Start with a form</h2></div>
+          <label class="upload-zone" for="form-file"><span class="upload-icon" aria-hidden="true">↥</span><span class="upload-title">Import form JSON</span><span class="upload-hint">Supported definition · up to 256 KiB</span><input id="form-file" type="file" accept=".json,application/json"></label>
+          <div class="source-actions"><button class="button secondary full" id="load-demo" type="button">Load synthetic demo</button><button class="button full" id="run-experiment" type="button">Run branch experiment <span aria-hidden="true">↗</span></button></div>
+          <p class="fine-print">The experiment uses invented data. Run it on a fresh or reset demo, inspect the result, then choose whether to save.</p>
+          <p class="inline-error" id="import-error" role="alert" hidden></p>
+          <details class="import-feedback"><summary>Import details</summary><div class="import-notice" id="import-notice" aria-live="polite" hidden></div></details>
         </section>
-      </div>
-      <footer class="footer"><span>FormLift <span class="footer-dot">·</span> A narrow, inspectable replacement</span><span>Runs locally. Evidence stays explicit.</span></footer>
-      <div class="sr-only" id="announcer" aria-live="polite"></div>
-    </main>
-  </body>
+        <section class="policy-card" aria-labelledby="policy-title"><p class="eyebrow" id="policy-title">Current local behavior</p><dl><div><dt>On branch return</dt><dd id="policy-restoration">Loading…</dd></div><div><dt>In the response</dt><dd id="policy-submission">Loading…</dd></div></dl></section>
+        <details class="scope-card"><summary>Supported subset</summary><ul class="scope-list"><li>Short text, whole numbers, single choice</li><li>Up to six questions and one branch</li><li>Backtracking and local responses</li></ul><p class="fine-print">Unsupported behavior is rejected. One local operator; no hosted collection, accounts, integrations, or runtime AI calls.</p></details>
+      </aside>
+
+      <section class="workbench" aria-label="Form workspace">
+        <div class="task-tabs" role="tablist" aria-label="Workspace tasks">
+          <button id="tab-run" type="button" role="tab" aria-selected="true" aria-controls="panel-run" tabindex="0"><span class="tab-number" aria-hidden="true">01</span>Run</button>
+          <button id="tab-inspect" type="button" role="tab" aria-selected="false" aria-controls="panel-inspect" tabindex="-1"><span class="tab-number" aria-hidden="true">02</span>Inspect</button>
+          <button id="tab-responses" type="button" role="tab" aria-selected="false" aria-controls="panel-responses" tabindex="-1"><span class="tab-number" aria-hidden="true">03</span>Responses</button>
+          <button id="tab-costs" type="button" role="tab" aria-selected="false" aria-controls="panel-costs" tabindex="-1"><span class="tab-number" aria-hidden="true">04</span>Costs</button>
+        </div>
+
+        <section id="panel-run" role="tabpanel" aria-labelledby="tab-run" tabindex="0">
+          <div class="card runner-card">
+            <div class="runner-header"><div><p class="eyebrow">Questionnaire</p><h2 id="run-title">One question at a time.</h2></div><div class="runner-toolbar"><span class="status-pill neutral" id="form-status">No form loaded</span><button type="button" class="reset-button" id="reset-run" disabled>Reset</button></div></div>
+            <div class="progress-line"><span class="progress-dot" aria-hidden="true"></span><span id="question-progress" aria-live="polite">Load a form to begin</span></div>
+            <div class="runner-content" id="runner-content"><div class="empty-state"><div class="route-art" aria-hidden="true"><span class="route-node large">1</span><span class="route-line"></span><span class="route-fork"><span class="route-node">2</span><span class="route-node muted">↘</span></span><span class="route-line"></span><span class="route-node large">3</span></div><p class="eyebrow">A small form. A useful experiment.</p><h3>See what happens<br>when an answer changes.</h3><p>Import a supported form or run the synthetic branch experiment. Follow the route, then inspect which answers are remembered and which are included.</p><span class="empty-tag">Run → inspect → collect → export</span></div></div>
+          </div>
+          <p class="panel-footnote">Answers are saved only when the local server confirms your submission. Export the form from the header to run it without a server.</p>
+        </section>
+
+        <section id="panel-inspect" role="tabpanel" aria-labelledby="tab-inspect" tabindex="0" hidden>
+          <div class="panel-intro"><p class="eyebrow">Behavior, made visible</p><h2>Remembered does not mean submitted.</h2><p>Separate the draft, committed value, and output preview. Replay any accepted step without changing the live respondent.</p></div>
+          <div class="card panel-empty" id="inspect-empty"><span class="empty-symbol" aria-hidden="true">↳</span><h3>No run to inspect yet.</h3><p>Load a form or run the branch experiment to see the route and answer state here.</p></div>
+          <section class="card branch-card" id="branch-inspector" aria-labelledby="branch-title" hidden>
+            <div class="section-heading"><span class="step-number">↳</span><h2 id="branch-title">Branch state</h2></div><p class="route-caption" id="branch-route"></p>
+            <div class="table-scroll"><table class="branch-table"><caption class="sr-only">Field state under the current local policy</caption><thead><tr><th>Field</th><th>Route</th><th>Raw draft</th><th>Committed</th><th>Output preview</th></tr></thead><tbody id="branch-rows"></tbody></table></div>
+            <div class="replay-controls"><label for="replay-step" id="replay-label">Live accepted state</label><input id="replay-step" type="range" min="0" max="0" value="0" step="1"><button class="button secondary" id="replay-live" type="button">Return to live</button></div>
+            <p class="fine-print">Typing enters accepted history when you navigate. Output preview reflects committed answers; it is not a saved response.</p><button class="button secondary trace-download" id="download-trace" type="button">Download replay data <span class="button-note">Includes answers</span></button>
+          </section>
+          <section class="card inspector-card" aria-labelledby="inspect-title"><div class="inspector-heading"><h2 id="inspect-title">Run details</h2><span class="caption" id="event-count">0 events</span></div><div class="inspector-metrics"><div><span class="metric-label">Definition</span><strong id="definition-name">Not loaded</strong></div><div><span class="metric-label">Questions</span><strong id="question-count">—</strong></div><div><span class="metric-label">Local response</span><strong id="save-status">Not submitted</strong></div></div><details id="trace-details"><summary>Accepted event history <span class="caption">JSON</span></summary><pre id="event-trace" tabindex="0">No events yet.</pre></details><details id="receipt-details" hidden><summary>Saved response receipt <span class="caption">JSON</span></summary><pre id="receipt-json" tabindex="0"></pre></details></section>
+        </section>
+
+        <section id="panel-responses" role="tabpanel" aria-labelledby="tab-responses" tabindex="0" hidden>
+          <div class="panel-intro"><p class="eyebrow">Collected on this device</p><h2>Your responses, ready to use.</h2><p>Review the server's saved records for this exact form. Export the displayed snapshot as a spreadsheet-friendly CSV.</p></div>
+          <section class="card results-card" aria-labelledby="results-title"><div class="results-heading"><div><h2 id="results-title">Response inbox</h2><p class="caption" id="results-count">No form selected</p></div><div class="results-actions"><button class="button secondary" id="results-refresh" type="button" disabled>Refresh</button><button class="button" id="results-export" type="button" disabled>Export CSV <span aria-hidden="true">↓</span></button></div></div>
+            <p class="results-status" id="results-status" role="status" aria-live="polite">Load a form to see its saved responses.</p><p class="inline-error" id="results-error" role="alert" hidden></p>
+            <div class="results-scroll" id="results-scroll" role="region" aria-label="Saved response table; scroll horizontally for more fields" tabindex="0" hidden><table class="results-table" id="results-table"><caption class="sr-only">Latest saved responses for the active form</caption><thead id="results-head"></thead><tbody id="results-body"></tbody></table></div>
+            <p class="fine-print">The latest 500 matching records are shown. Offline JSON downloads are separate files and are not automatically added here. CSV includes presence/type columns and escapes spreadsheet text. Response JSON preserves the original answer values.</p>
+          </section>
+        </section>
+
+        <section id="panel-costs" role="tabpanel" aria-labelledby="tab-costs" tabindex="0" hidden>
+          <div class="panel-intro"><p class="eyebrow">Assumptions you can inspect</p><h2>Count the whole cost.</h2><p>A subscription is only one part of the comparison. Include setup, labor, hardware, and the workflow you actually need.</p></div>
+          <section class="card cost-card" aria-labelledby="cost-title"><details><summary id="cost-title">Would this workflow actually cost less?</summary><p>Scenario estimate only. Use a paid invoice, a suitable quote, or a free alternative as the baseline. All amounts below use USD; no live pricing is fetched.</p><p class="fine-print">Typeform Free already includes branching (10 responses/month). OpnForm lists free hosted logic and unlimited submissions. Typeform Basic price displays differed ($29 / $39) when checked on 31 October 2026. Confirm your own price and allowance.</p><p class="cost-links"><a href="https://www.typeform.com/pricing" target="_blank" rel="noreferrer">Typeform pricing ↗</a><a href="https://help.typeform.com/hc/en-us/articles/360032972852-Free-plan" target="_blank" rel="noreferrer">Free-plan limits ↗</a><a href="https://opnform.com/pricing" target="_blank" rel="noreferrer">OpnForm pricing ↗</a></p><button class="button secondary" id="cost-example" type="button">Load illustrative assumptions</button><div class="cost-inputs" id="cost-inputs"></div><label class="cost-check"><input id="cost-comparable" type="checkbox"> My workflow fits the supported subset on one attended device; I do not need hosted collection, integrations, collaboration, or an availability guarantee.</label><p class="fine-print">Include incremental migration, receipt collection, backups and maintenance labor. Common authoring/collection labor must be equal or included on both sides. Hosting and inference are $0 only for this local design; add hardware allocation and power/storage costs below. Source compatibility and actual customer savings remain unverified.</p><div id="cost-result" role="status" aria-live="polite">Enter a scenario to calculate.</div></details></section>
+        </section>
+      </section>
+    </div>
+    <footer class="footer"><span>FormLift <span aria-hidden="true">·</span> Open source. Local by design.</span><span>Evidence stays explicit.</span></footer><div class="sr-only" id="announcer" aria-live="polite"></div>
+  </main>
+</body>
 </html>

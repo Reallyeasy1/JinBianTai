@@ -6,6 +6,12 @@ import type { BehaviorPolicy, CanonicalAnswers, EngineState, FormModel, Presence
 export function serializeResponse(model: FormModel, state: EngineState, policy: BehaviorPolicy): CanonicalAnswers {
   if (!validPolicy(policy)) throw new TypeError('An explicit valid policy is required.');
   if (state.phase !== 'submitted') throw new TypeError('Only a submitted state can be serialized.');
+  return projectAnswers(model, state, policy);
+}
+
+/** Preview committed-answer inclusion. Does not validate, submit, or persist a run. */
+export function projectAnswers(model: FormModel, state: EngineState, policy: BehaviorPolicy): CanonicalAnswers {
+  if (!validPolicy(policy)) throw new TypeError('An explicit valid policy is required.');
   const active = new Set(reachableFields(model, state.answers));
   return model.fields.map(field => {
     let answer: Presence = { presence: 'missing' };

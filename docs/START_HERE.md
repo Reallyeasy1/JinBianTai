@@ -6,6 +6,8 @@ The implemented [capture workflow](CAPTURE_WORKFLOW.md) creates private draft pa
 
 ## What one launch means
 
+For the current hackathon-improvement continuation, read [HACKATHON_DESIGN.md](HACKATHON_DESIGN.md) and follow [HACKATHON_WORKFLOW.md](HACKATHON_WORKFLOW.md). It extends this implementation instead of restarting the original work order. The original launch prompt below is retained for context, not an instruction to reset the timer or rebuild completed work.
+
 One instruction starts a lead agent that coordinates evidence review, implementation, independent testing, fixes, and packaging. You should not need to approve routine implementation choices or manually sequence each task. It is not a guarantee of completion within three hours, and it cannot supply a private account, credentials, missing source observations, or denied tool permissions.
 
 The strongest unattended path begins with the evidence below already available. Record any preparation time separately; all new target-specific work after launch counts against the original 180-minute deadline. Confirm actual event rules before treating preparation as outside a hackathon timer.

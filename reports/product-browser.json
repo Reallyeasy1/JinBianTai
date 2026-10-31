@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "formlift-product-browser/1",
+  "status": "PASS",
+  "classification": "SYNTHETIC_ENGINEERING_ONLY",
+  "referenceCases": 0,
+  "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+  "buildFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+  "finishedFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+  "startedAt": "2026-10-31T06:19:37.192Z",
+  "finishedAt": "2026-10-31T06:19:43.861Z",
+  "browser": {
+    "engine": "chromium",
+    "version": "153.0.8010.0",
+    "executable": "environment-override"
+  },
+  "counts": {
+    "planned": 3,
+    "executed": 3,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "infrastructureFailures": 0
+  },
+  "checks": [
+    {
+      "id": "PRODUCT-TABS",
+      "description": "Accessible task navigation preserves uncommitted input and honest route progress on desktop/mobile",
+      "status": "PASS"
+    },
+    {
+      "id": "PRODUCT-RESULTS",
+      "description": "Two real responses, persisted inbox, parsed CSV download, reload, and form isolation",
+      "status": "PASS"
+    },
+    {
+      "id": "PRODUCT-SNAPSHOT",
+      "description": "CSV detects a changed snapshot and stale asynchronous inbox responses cannot replace a newly imported form",
+      "status": "PASS"
+    }
+  ]
+}

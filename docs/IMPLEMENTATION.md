@@ -138,3 +138,43 @@ The next phase builds on merged commit `8db15d8505d7954a4f305642fac751cfee82b4c6
 See [CAPTURE_WORKFLOW.md](CAPTURE_WORKFLOW.md) for actual commands and [CI.md](CI.md) for the automation boundary. Current reports under `reports/` supersede the initial PR #3 test totals above. No genuine definition, captures, Typeform credentials, or target form ID were available during this continuation. The remaining account-dependent task is still the four controlled source experiments.
 
 Phase 2 local validation: **66/66 automated tests**, **6/6 actual browser journeys**, and fresh install/build/start with persisted-response readback all pass. The tested source fingerprint is `fe4fed4d06823f571dcf5b23fe29ec71528823195ae211c97200dff88ea86aa8`. The intake package-script smoke test creates only a synthetic private draft. Default readiness/reference/release commands still return BLOCKED/2 solely for missing genuine source evidence. Hosted CI is reported separately by its actual GitHub run; local success is not a hosted-CI claim.
+
+## Hackathon and product improvement continuation
+
+This continuation builds on PR #4's evidence-intake branch. [HACKATHON_DESIGN.md](HACKATHON_DESIGN.md) records the critical rubric evaluation; [HACKATHON_WORKFLOW.md](HACKATHON_WORKFLOW.md) gives the execution gates. Following the additional market/UI request, [PRODUCT_UPGRADE_DESIGN.md](PRODUCT_UPGRADE_DESIGN.md) was written before implementation and fixes the API, UX, CSV, ownership and acceptance contracts. Its comparison covers Typeform, Tally, Fillout, OpnForm and Formbricks using primary sources checked 31 October 2026.
+
+Implemented behavior:
+
+- A live branch inspector separates raw draft, committed answer and projected output. Event-prefix replay is isolated from the live run and never saves a response. The guided branch experiment uses labelled synthetic data and requires an explicit ordinary save.
+- Standalone HTML export embeds the shared engine, supported definition and MIT notice. It works without a server or network. Answers remain in memory until the user downloads JSON; the file never claims that the server saved them. `npm run export:demo` reproduces [the synthetic standalone example](../examples/formlift-demo.html) through the real export endpoint.
+- An editable cost scenario includes source allowance, workflow suitability, setup labor, maintenance, hardware and power/storage. It preserves losses and zero-price baselines. Prices remain operator inputs; estimates are not measured savings.
+- Run / Inspect / Responses / Costs tabs preserve uncommitted input. Keyboard navigation, route-aware progress, readable typography and mobile state cards make the workflow easier to demonstrate.
+- A response inbox reads actual saved JSONL for the exact imported form. CSV exports the same revision and row selection; changed storage returns 409 rather than silently exporting different data. Formula-like text is prefixed for spreadsheet use while canonical JSON remains unchanged.
+
+Additional endpoints are `GET /api/export?formHash=...`, `GET /api/results?formHash=...`, and `GET /api/results.csv?formHash=...&revision=...`. Inbox reads are bounded to 8 MiB plus a detection byte and display the latest 500 matching rows with a truncation notice. Reads and writes share one process queue; multiple processes sharing a file remain unsupported. Offline downloads are separate files and are not automatically ingested into the inbox.
+
+### Verified final source
+
+Source fingerprint: `f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d`.
+
+| Check | Actual local result on 31 October 2026 |
+| --- | --- |
+| `npm test`, including typecheck/build | 88/88 tests PASS; zero skipped |
+| Original browser journeys | 6/6 PASS |
+| Inspector, standalone/offline and cost journeys | 4/4 PASS |
+| Inbox, CSV, tab/progress and async-race journeys | 3/3 PASS |
+| Desktop and 390px screenshots | Visually reviewed; no material overlap or page overflow; mobile results table scrolls within its container |
+| Generated `examples/formlift-demo.html` | Opened as a real file with network disabled; completed to `DOWNLOAD_REQUIRED`; zero HTTP(S) requests and zero page errors |
+| Readiness / reference / release | All BLOCKED, exit 2; sole issue `MISSING_EVIDENCE` |
+
+All three browser suites used Chromium 153.0.8010.0. Every engineering/browser report identifies the same source/build fingerprint. This is synthetic local verification, not original-product compatibility or cross-browser coverage.
+
+The reproducible benchmark passed 1,000 replay/serialization checks and 100 sequential localhost HTTP saves with 100 records read back (86,744 bytes). On this machine that run took 299.79 ms for the HTTP workload, with p95 5.09 ms. The report includes the runtime, CPU, cases, counts, error list and measurement boundaries. These values do not measure concurrent production capacity, source-product performance, power-loss durability, human entry time, electricity or monetary savings. Re-run `npm run benchmark` on the intended demo machine before using its numbers.
+
+### Judge assessment and next critical path
+
+The provisional score moved from 55 to approximately 60/100 because the actual working demonstration improved. This is an estimate, not a judging result. Status-quo cost remains 2/5, reach 4/5, working-build coolness 4/5, demonstrated cost reduction 1/5, and openness 5/5. The market features improve utility but do not automatically add novelty points: migration tools, logic views, free alternatives and offline competitors already exist.
+
+The next priority is the four controlled experiments in [CAPTURE_WORKFLOW.md](CAPTURE_WORKFLOW.md): direct included route, direct skipped route, answered branch abandoned at submission, and return to that branch. Capture restoration separately from completed stored answers, freeze held-out cases, then compare the independently observed output. No original form, account credentials or captures were available in this continuation, so none were fabricated. Without those experiments, the project remains a documented-schema implementation with an investigation harness, not demonstrated reverse engineering.
+
+The next customer test should establish one equivalent attended/offline workflow and its actual volume, plan price and setup effort. A broader builder, accounts, cloud hosting or additional integrations should wait until that evidence shows they matter. A small future UX refinement is collapsing setup after import on mobile; it is not required for the verified workflow above.

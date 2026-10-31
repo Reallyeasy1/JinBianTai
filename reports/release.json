@@ -3,8 +3,8 @@
   "mode": "release",
   "status": "BLOCKED",
   "exitCode": 2,
-  "generatedAt": "2026-10-31T05:35:18.126Z",
-  "fingerprint": "fe4fed4d06823f571dcf5b23fe29ec71528823195ae211c97200dff88ea86aa8",
+  "generatedAt": "2026-10-31T06:20:21.243Z",
+  "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
   "evidenceStatus": "BLOCKED",
   "issues": [
     {
@@ -25,43 +25,43 @@
   "engineering": {
     "schemaVersion": "formlift-engineering/1",
     "status": "PASS",
-    "fingerprint": "fe4fed4d06823f571dcf5b23fe29ec71528823195ae211c97200dff88ea86aa8",
+    "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
     "classification": "SYNTHETIC_ENGINEERING_ONLY",
     "referenceCases": 0,
-    "startedAt": "2026-10-31T05:33:33.181Z",
-    "finishedAt": "2026-10-31T05:33:38.164Z",
+    "startedAt": "2026-10-31T06:19:19.171Z",
+    "finishedAt": "2026-10-31T06:19:24.174Z",
     "runtime": {
       "node": "v24.22.1",
       "platform": "linux",
       "architecture": "x64"
     },
     "counts": {
-      "executed": 66,
-      "passed": 66,
+      "executed": 88,
+      "passed": 88,
       "failed": 0,
       "skipped": 0
     },
     "commands": [
       {
         "command": "npm run typecheck",
-        "startedAt": "2026-10-31T05:33:33.232Z",
-        "finishedAt": "2026-10-31T05:33:33.818Z",
+        "startedAt": "2026-10-31T06:19:19.215Z",
+        "finishedAt": "2026-10-31T06:19:19.894Z",
         "exitCode": 0,
         "signal": null,
         "launched": true
       },
       {
         "command": "npm run build",
-        "startedAt": "2026-10-31T05:33:33.818Z",
-        "finishedAt": "2026-10-31T05:33:34.724Z",
+        "startedAt": "2026-10-31T06:19:19.894Z",
+        "finishedAt": "2026-10-31T06:19:20.922Z",
         "exitCode": 0,
         "signal": null,
         "launched": true
       },
       {
-        "command": "node --test --test-reporter=tap dist/tests/evidence-cli.test.js dist/tests/evidence.test.js dist/tests/server.test.js dist/tests/unit.test.js dist/tests/verification.test.js",
-        "startedAt": "2026-10-31T05:33:34.740Z",
-        "finishedAt": "2026-10-31T05:33:38.146Z",
+        "command": "node --test --test-reporter=tap dist/tests/evidence-cli.test.js dist/tests/evidence.test.js dist/tests/hackathon.test.js dist/tests/product.test.js dist/tests/server.test.js dist/tests/unit.test.js dist/tests/verification.test.js",
+        "startedAt": "2026-10-31T06:19:20.950Z",
+        "finishedAt": "2026-10-31T06:19:24.156Z",
         "exitCode": 0,
         "signal": null,
         "launched": true
@@ -70,18 +70,18 @@
   },
   "browser": {
     "status": "PASS",
-    "fingerprint": "fe4fed4d06823f571dcf5b23fe29ec71528823195ae211c97200dff88ea86aa8",
+    "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
     "classification": "SYNTHETIC_ENGINEERING_ONLY",
-    "buildFingerprint": "fe4fed4d06823f571dcf5b23fe29ec71528823195ae211c97200dff88ea86aa8",
-    "finishedFingerprint": "fe4fed4d06823f571dcf5b23fe29ec71528823195ae211c97200dff88ea86aa8",
+    "buildFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+    "finishedFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
     "browser": {
       "engine": "chromium",
       "version": "153.0.8010.0",
       "executable": "environment-override"
     },
     "referenceCases": 0,
-    "startedAt": "2026-10-31T05:34:07.928Z",
-    "finishedAt": "2026-10-31T05:34:15.827Z",
+    "startedAt": "2026-10-31T06:19:37.169Z",
+    "finishedAt": "2026-10-31T06:19:45.246Z",
     "checks": [
       {
         "id": "UI-01",
@@ -122,5 +122,92 @@
       "skipped": 0,
       "infrastructureFailures": 0
     }
+  },
+  "hackathonBrowser": {
+    "schemaVersion": "formlift-hackathon-browser/1",
+    "status": "PASS",
+    "classification": "SYNTHETIC_ENGINEERING_ONLY",
+    "referenceCases": 0,
+    "startedAt": "2026-10-31T06:19:36.972Z",
+    "finishedAt": "2026-10-31T06:19:42.039Z",
+    "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+    "buildFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+    "finishedFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+    "browser": {
+      "engine": "chromium",
+      "version": "153.0.8010.0",
+      "executable": "environment-override"
+    },
+    "counts": {
+      "planned": 4,
+      "executed": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "infrastructureFailures": 0
+    },
+    "checks": [
+      {
+        "id": "LAB-BROWSER",
+        "description": "Synthetic branch experiment, isolated prefix inspection, trace download, and actual server persistence",
+        "status": "PASS"
+      },
+      {
+        "id": "OFFLINE-BROWSER",
+        "description": "Downloaded standalone file works without network, renders hostile labels inertly, and downloads an explicitly offline receipt",
+        "status": "PASS"
+      },
+      {
+        "id": "COST-BROWSER",
+        "description": "Cost scenarios require an equivalence declaration and retain free-baseline losses",
+        "status": "PASS"
+      },
+      {
+        "id": "OFFLINE-PRESENCE",
+        "description": "Untouched optional text remains missing while intentionally cleared text remains an empty value offline",
+        "status": "PASS"
+      }
+    ]
+  },
+  "productBrowser": {
+    "schemaVersion": "formlift-product-browser/1",
+    "status": "PASS",
+    "classification": "SYNTHETIC_ENGINEERING_ONLY",
+    "referenceCases": 0,
+    "fingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+    "buildFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+    "finishedFingerprint": "f3682d2f0cf7f7d7667323cb9dfaab5bc8639c01dcdb00a8a2b5897dfa18538d",
+    "startedAt": "2026-10-31T06:19:37.192Z",
+    "finishedAt": "2026-10-31T06:19:43.861Z",
+    "browser": {
+      "engine": "chromium",
+      "version": "153.0.8010.0",
+      "executable": "environment-override"
+    },
+    "counts": {
+      "planned": 3,
+      "executed": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "infrastructureFailures": 0
+    },
+    "checks": [
+      {
+        "id": "PRODUCT-TABS",
+        "description": "Accessible task navigation preserves uncommitted input and honest route progress on desktop/mobile",
+        "status": "PASS"
+      },
+      {
+        "id": "PRODUCT-RESULTS",
+        "description": "Two real responses, persisted inbox, parsed CSV download, reload, and form isolation",
+        "status": "PASS"
+      },
+      {
+        "id": "PRODUCT-SNAPSHOT",
+        "description": "CSV detects a changed snapshot and stale asynchronous inbox responses cannot replace a newly imported form",
+        "status": "PASS"
+      }
+    ]
   }
 }

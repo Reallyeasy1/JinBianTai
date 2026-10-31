@@ -4,7 +4,7 @@
 
 ## Delivery boundary and SDLC record
 
-The implementation run followed the merged planning/design work: small shared contracts, engine/API, UI, independent testing/review, repairs, reproducibility checks, and reviewable source changes. Application merging and deployment are excluded.
+The implementation run followed the merged planning/design work: small shared contracts, engine/API, UI, independent testing/review, repairs, reproducibility checks, and reviewable source changes. The initial run excluded merging and deployment. The user subsequently authorized merging PR #3, which is now on main; no deployment was performed.
 
 The run started at `2026-10-31T04:39:18Z`; the 180-minute deadline is `2026-10-31T07:39:18Z`. Both are retained in ignored local checkpoint state. Codex and collaborating agents performed this run; this does not claim Claude Code or a Fable model was exercised.
 
@@ -104,9 +104,9 @@ Expected outputs must come from the original, not this implementation. A source 
 
 Do not stage an invented original-versus-replacement comparison. Once genuine evidence exists, show the actual source capture, declared channel, and measured result.
 
-## Recorded validation
+## Initial implementation validation (PR #3)
 
-The final tested source fingerprint is `1ab083f5380dd2981e7369861587fb2aba796c3ab0293603d8b99e6a49fdc703`.
+The original tested source fingerprint is `1ab083f5380dd2981e7369861587fb2aba796c3ab0293603d8b99e6a49fdc703`.
 
 | Check | Actual result |
 | --- | --- |
@@ -123,4 +123,18 @@ Reports are in `reports/`. This table is a record of the tested revision, not a 
 
 First task: supply genuine definition/captures, run readiness, compare a frozen policy, and fix divergences without rewriting expectations to match. Keep UI and response channels separate. Preserve original held-out failures and label repaired cases regression tests.
 
-Key limitations: missing source evidence, one active form per process, local-only storage, no exact-once persistence, no full rendering/validation parity, no production load test, and one tested Chromium environment. No subscription, paid account, deployment, or application merge was performed. Source and synthetic data are MIT licensed; dependencies retain their notices. Setup and local resources have real costs. Savings remain unmeasured until an equivalent source workflow and current price are established.
+Key limitations: missing source evidence, one active form per process, local-only storage, no exact-once persistence, no full rendering/validation parity, no production load test, and one tested Chromium environment. No subscription, paid account, or deployment was performed. PR #3 was merged after the user explicitly requested it. Source and synthetic data are MIT licensed; dependencies retain their notices. Setup and local resources have real costs. Savings remain unmeasured until an equivalent source workflow and current price are established.
+
+## Phase 2: evidence intake and CI
+
+The next phase builds on merged commit `8db15d8505d7954a4f305642fac751cfee82b4c6`. The original implementation clock/deadline are preserved; this continuation does not manufacture additional source evidence.
+
+- `src/evidence.ts` projects an explicitly selected completed stored response without importing the navigation engine or replacement serializer. Missing/partial/undeclared-full captures remain BLOCKED; source values and inactive answers are preserved.
+- `scripts/evidence.ts` creates private draft packages and normalizes captured files into new private output directories. Source times, experimental splits, policies, and observations are never invented.
+- Explicit-manifest comparison runs keep detailed differences and first-reference history in ignored private reports; console output is a summary.
+- Ordinary documented `thankyou_screen` ending metadata is accepted, while redirect endings remain rejected. This is schema support, not a behavioral finding.
+- Engineering CI uses pinned official actions, installs the locked toolchain/browser, runs local tests, and uploads only fresh engineering/browser reports. Its status is separate from source verification.
+
+See [CAPTURE_WORKFLOW.md](CAPTURE_WORKFLOW.md) for actual commands and [CI.md](CI.md) for the automation boundary. Current reports under `reports/` supersede the initial PR #3 test totals above. No genuine definition, captures, Typeform credentials, or target form ID were available during this continuation. The remaining account-dependent task is still the four controlled source experiments.
+
+Phase 2 local validation: **66/66 automated tests**, **6/6 actual browser journeys**, and fresh install/build/start with persisted-response readback all pass. The tested source fingerprint is `fe4fed4d06823f571dcf5b23fe29ec71528823195ae211c97200dff88ea86aa8`. The intake package-script smoke test creates only a synthetic private draft. Default readiness/reference/release commands still return BLOCKED/2 solely for missing genuine source evidence. Hosted CI is reported separately by its actual GitHub run; local success is not a hosted-CI claim.

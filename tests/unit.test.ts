@@ -219,3 +219,15 @@ test('SAFE-01: hostile reference keys reject and never mutate object prototypes'
   const input = fixture(); input.fields[1].ref = '__proto__'; rejects(input);
   assert.equal(({} as Record<string, unknown>).polluted, undefined);
 });
+
+test('IMP-02: documented ordinary ending type imports while redirect and unknown types reject', () => {
+  const input = fixture();
+  input.thankyou_screens[0].type = 'thankyou_screen';
+  assert.equal(importForm(input).ok, true);
+  input.thankyou_screens[0].type = 'url_redirect';
+  const redirect = importForm(input);
+  assert.equal(redirect.ok, false);
+  if (!redirect.ok) assert.ok(redirect.errors.some(error => error.code === 'UNSUPPORTED_ENDING_TYPE'));
+  input.thankyou_screens[0].type = 'future_behavior';
+  assert.equal(importForm(input).ok, false);
+});

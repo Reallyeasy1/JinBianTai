@@ -15,6 +15,8 @@
     "dev": "npm run build && npm start",
     "test": "node scripts/engineering.mjs",
     "test:e2e": "npm run build && node dist/tests/e2e.js",
+    "evidence:init": "npm run build && node dist/scripts/evidence.js init",
+    "evidence:normalize": "npm run build && node dist/scripts/evidence.js normalize",
     "verify:readiness": "npm run build && node dist/scripts/verify.js readiness",
     "verify:reference": "npm run build && node dist/scripts/verify.js reference",
     "verify:release": "npm run build && node dist/scripts/verify.js release"

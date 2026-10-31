@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, readdir, writeFile, mkdir, rm, symlink } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, writeFile, mkdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { compareValues, isCanonicalAnswers } from '../src/comparison.js';
 import { sourceFingerprint, verifyReadiness, verifyReference, verifyRelease } from '../scripts/verify.js';
 import type { Event } from '../src/model.js';
+import { createLink } from './links.js';
 
 test('comparison distinguishes missing, null, empty, zero, and numeric strings', () => {
   const values = [{}, { value: null }, { value: '' }, { value: 0 }, { value: '0' }];
@@ -262,8 +263,9 @@ test('explicit manifest CLI keeps captured differences private for private and p
   }
 });
 
-test('private report CLI refuses linked and non-directory ancestors or linked latest files', async () => {
+test('private report CLI refuses linked and non-directory ancestors or linked latest files', async t => {
   const secret = 'PRIVATE_SYMLINK_ANSWER_SENTINEL_4527';
+  const notExecuted: string[] = [];
   for (const scenario of ['reports-link', 'private-link', 'latest-outside-link', 'latest-public-link', 'reports-file', 'private-file']) {
     const root = await mkdtemp(join(tmpdir(), 'formlift-report-link-'));
     const outside = await mkdtemp(join(tmpdir(), 'formlift-outside-target-'));
@@ -285,15 +287,16 @@ test('private report CLI refuses linked and non-directory ancestors or linked la
       const publicTarget = join(publicDirectory, 'original.json');
       await writeFile(outsideTarget, 'existing outside report');
       await writeFile(publicTarget, 'existing public report');
-      if (scenario === 'reports-link') await symlink(outside, join(root, 'reports'), 'dir');
+      if (scenario === 'reports-link') await createLink(outside, join(root, 'reports'), 'dir');
       else if (scenario === 'reports-file') await writeFile(join(root, 'reports'), 'ordinary file');
       else {
         await mkdir(join(root, 'reports'));
-        if (scenario === 'private-link') await symlink(publicDirectory, join(root, 'reports/private'), 'dir');
+        if (scenario === 'private-link') await createLink(publicDirectory, join(root, 'reports/private'), 'dir');
         else if (scenario === 'private-file') await writeFile(join(root, 'reports/private'), 'ordinary file');
         else {
           await mkdir(join(root, 'reports/private'));
-          await symlink(scenario === 'latest-outside-link' ? outsideTarget : publicTarget, join(root, 'reports/private/reference.json'), 'file');
+          const link = await createLink(scenario === 'latest-outside-link' ? outsideTarget : publicTarget, join(root, 'reports/private/reference.json'), 'file');
+          if (!link.created) { notExecuted.push(`${scenario}: ${link.reason}`); continue; }
         }
       }
       const result = spawnSync(process.execPath, [fileURLToPath(new URL('../scripts/verify.js', import.meta.url)), 'reference', '--manifest', 'evidence/private/capture/manifest.json'], { cwd: root, encoding: 'utf8', timeout: 10_000 });
@@ -312,6 +315,8 @@ test('private report CLI refuses linked and non-directory ancestors or linked la
       if (scenario === 'private-file') assert.equal(await readFile(join(root, 'reports/private'), 'utf8'), 'ordinary file');
     } finally { await rm(root, { recursive: true, force: true }); await rm(outside, { recursive: true, force: true }); }
   }
+  // Executed scenarios above still had to pass; any unexecuted case makes the whole test incomplete.
+  if (notExecuted.length) t.skip(`Scenarios not executed: ${notExecuted.join(' | ')}`);
 });
 
 test('default public manifest CLI retains the public report and full output contract', async () => {

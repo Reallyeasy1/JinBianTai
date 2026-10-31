@@ -2,12 +2,13 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { access, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test, { type TestContext } from 'node:test';
 import { verifyReadiness } from '../scripts/verify.js';
+import { createLink } from './links.js';
 
 // All inputs here are independently authored synthetic engineering fixtures.
 // They are NOT source observations, even where a source-shaped timestamp exists.
@@ -170,7 +171,7 @@ test('output symlink ancestors cannot redirect private captures elsewhere', asyn
   const outside = await mkdtemp(join(tmpdir(), 'formlift-evidence-outside-'));
   t.after(async () => { await rm(outside, { recursive: true, force: true }); });
   await mkdir(join(root, 'evidence'));
-  await symlink(outside, join(root, 'evidence/private'), 'dir');
+  await createLink(outside, join(root, 'evidence/private'), 'dir');
   const result = run('init', '--definition', 'source-definition.json', '--out', 'evidence/private/run');
   assert.equal(result.status, 1, result.output);
   assert.deepEqual(await readdir(outside), []);
@@ -181,12 +182,13 @@ test('oversized and symlinked inputs reject without partial output', async t => 
   await writeFile(join(root, 'large-definition.json'), Buffer.alloc(256 * 1024 + 1, ' '));
   assert.equal(run('init', '--definition', 'large-definition.json', '--out', 'evidence/private/large').status, 1);
   await absent(join(root, 'evidence/private/large'));
-  await symlink(join(root, 'source-definition.json'), join(root, 'definition-link.json'));
-  assert.equal(run('init', '--definition', 'definition-link.json', '--out', 'evidence/private/link').status, 1);
-  await absent(join(root, 'evidence/private/link'));
   await writeFile(join(root, 'source-response.json'), Buffer.alloc(2 * 1024 * 1024 + 1, ' '));
   assert.equal(normalize().status, 1);
   await absent(join(root, 'evidence/private/run/D1'));
+  const link = await createLink(join(root, 'source-definition.json'), join(root, 'definition-link.json'), 'file');
+  if (!link.created) { t.skip(`Symlinked-input case not executed: ${link.reason}`); return; }
+  assert.equal(run('init', '--definition', 'definition-link.json', '--out', 'evidence/private/link').status, 1);
+  await absent(join(root, 'evidence/private/link'));
 });
 
 test('malformed files and arguments return bounded errors without private values or paths', async t => {

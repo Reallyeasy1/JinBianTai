@@ -1,10 +1,10 @@
 # FormLift: SDLC and implementation plan
 
-Status: initial high-level SDLC baseline; planning only. Reviewed 31 October 2026.
+Status: historical high-level SDLC baseline, written before implementation. Reviewed 31 October 2026. The application and subsequent upgrades are now implemented and merged. Start with [ROADMAP.md](ROADMAP.md) and [IMPLEMENTATION.md](IMPLEMENTATION.md) for the current state and remaining work; preserve the existing architecture and tests.
 
-The current detailed implementation contracts are in [DESIGN.md](DESIGN.md), [ACCEPTANCE.md](ACCEPTANCE.md), and [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md). Start with [START_HERE.md](START_HERE.md) and use the canonical [PROMPT.md](PROMPT.md) for an implementation launch. These documents refine this baseline; follow their concrete interfaces, command semantics, and default evidence gate.
+The original detailed implementation contracts are in [DESIGN.md](DESIGN.md), [ACCEPTANCE.md](ACCEPTANCE.md), and [AGENT_WORKFLOW.md](AGENT_WORKFLOW.md). [HACKATHON_DESIGN.md](HACKATHON_DESIGN.md) and [PRODUCT_UPGRADE_DESIGN.md](PRODUCT_UPGRADE_DESIGN.md) specify the later additions. [START_HERE.md](START_HERE.md) preserves the original launch prompt for context. Follow current implemented contracts and the roadmap for continuation, while retaining the evidence gate.
 
-This plan develops finalist 1 from the three-hour strategy. Repository inspection found an empty public repository with no code, tests, license, open issues, or pull requests. No existing architecture needs to be preserved. The planning change introduces documentation only.
+This plan developed finalist 1 from the three-hour strategy. At that initial planning stage, inspection found an empty public repository and the change introduced documentation only. That description is historical: the repository now contains application code, tests, license, design documents and merged implementation PRs. The scope and timing below record the original plan, not instructions to start over.
 
 ## 1. Initiation: the result we are trying to produce
 

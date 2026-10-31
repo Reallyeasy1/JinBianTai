@@ -6,6 +6,8 @@ The hackathon continuation adds a visual branch inspector, isolated event replay
 
 **Implemented engineering prototype. Typeform compatibility is BLOCKED.** The bundled example and behavior policy are synthetic. No genuine Typeform definition or source observations were supplied. Public-schema support and passing local tests do not establish reverse engineering or compatibility.
 
+The evidence intake and product upgrades are merged into `main` through [PR #4](https://github.com/Reallyeasy1/JinBianTai/pull/4) and [PR #5](https://github.com/Reallyeasy1/JinBianTai/pull/5). Start with the [current roadmap and agent handoff](docs/ROADMAP.md) for completed work, remaining tasks, owners and exit conditions. All design documents and execution plans are versioned in this repository.
+
 ## Open the no-install example
 
 Download [examples/formlift-demo.html](examples/formlift-demo.html) and open the saved file in a browser. It is a self-contained synthetic questionnaire with the MIT license embedded; no npm, server, or network is needed. Download each response as JSON before closing the page. This portable example does not include the server response inbox or verify Typeform behavior.
@@ -29,7 +31,7 @@ Open **http://127.0.0.1:4173**, select **Load synthetic demo**, and answer the f
 1. Click **Run branch experiment** on a fresh page or a fresh/reset synthetic demo. It prepares a synthetic branch-change history without submitting it.
 2. Inspect the budget row: raw draft `"500"`, committed number `500`, final output `Missing`. Use the **Inspect** tab to scrub the timeline; the live respondent and saved responses remain unchanged.
 3. On **Run**, click **Save response**. Only the real server's successful append produces a saved receipt. Open **Responses** to review records read from the log, refresh them, or export the displayed snapshot as CSV.
-4. Click **Download offline form**. Open the HTML file in a browser, even with networking disabled. It contains the definition and engine, never prior answers. Offline responses must be explicitly downloaded as JSON; closing/reloading loses undownloaded answers. It is not a public collection URL or automatic central storage.
+4. Click **Export offline HTML**. Open the HTML file in a browser, even with networking disabled. It contains the definition and engine, never prior answers. Offline responses must be explicitly downloaded as JSON; closing/reloading loses undownloaded answers. It is not a public collection URL or automatic central storage.
 5. Open **Costs** and expand **Would this workflow actually cost less?** Enter your actual price, allowance, labor, hardware and operating costs. The sample is an illustration, not verified savings. An unsuitable workflow or insufficient source allowance produces no estimate; a free baseline can make FormLift more expensive.
 
 The portable file includes the project MIT license. Imported form content retains its owner's rights. Downloaded replay data and response files contain answers; keep them private unless intentionally sharing synthetic examples.
@@ -85,6 +87,7 @@ Use actual local source files and response IDs. Initialization creates an incomp
 
 | Document | Purpose |
 | --- | --- |
+| [Current roadmap and agent handoff](docs/ROADMAP.md) | Merged delivery status, remaining priorities, owners, dependencies and exit conditions |
 | [Implementation notes](docs/IMPLEMENTATION.md) | Actual architecture, API, limits, deviations, demo, and next work |
 | [Technical design](docs/DESIGN.md) | Original design contract |
 | [Agent workflow](docs/AGENT_WORKFLOW.md) | Original three-hour coordination and recovery plan |

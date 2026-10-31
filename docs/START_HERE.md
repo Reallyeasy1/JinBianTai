@@ -1,12 +1,12 @@
 # Start FormLift in one agent session
 
-Status: local engineering implementation available. Read [IMPLEMENTATION.md](IMPLEMENTATION.md), README, and current reports first. Source compatibility remains BLOCKED. The workflow below is the original launch contract; extend the existing code rather than rebuilding it. Preserve the original deadline when resuming the same run.
+Status: local engineering implementation, evidence intake and product upgrades are merged into `main`. Read [ROADMAP.md](ROADMAP.md), [IMPLEMENTATION.md](IMPLEMENTATION.md), README, and current reports first. Source compatibility remains BLOCKED. The workflow below is the original launch contract; extend the existing code rather than rebuilding it. Preserve the original deadline when resuming the same run.
 
 The implemented [capture workflow](CAPTURE_WORKFLOW.md) creates private draft packages and independent stored-answer projections. Use it to gather the missing source evidence; [engineering CI](CI.md) checks local software behavior separately.
 
 ## What one launch means
 
-For the current hackathon-improvement continuation, read [HACKATHON_DESIGN.md](HACKATHON_DESIGN.md) and follow [HACKATHON_WORKFLOW.md](HACKATHON_WORKFLOW.md). It extends this implementation instead of restarting the original work order. The original launch prompt below is retained for context, not an instruction to reset the timer or rebuild completed work.
+The completed hackathon and product work is specified in [HACKATHON_DESIGN.md](HACKATHON_DESIGN.md), [HACKATHON_WORKFLOW.md](HACKATHON_WORKFLOW.md), and [PRODUCT_UPGRADE_DESIGN.md](PRODUCT_UPGRADE_DESIGN.md). Continue with the unfinished tasks and agent handoffs in [ROADMAP.md](ROADMAP.md). The original launch prompt below is retained for context, not an instruction to reset the timer or rebuild completed work. PRs #4 and #5 were subsequently merged under explicit authorization; their original no-merge instructions describe the earlier launch boundary.
 
 One instruction starts a lead agent that coordinates evidence review, implementation, independent testing, fixes, and packaging. You should not need to approve routine implementation choices or manually sequence each task. It is not a guarantee of completion within three hours, and it cannot supply a private account, credentials, missing source observations, or denied tool permissions.
 

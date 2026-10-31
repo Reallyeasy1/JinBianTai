@@ -2,6 +2,8 @@
 
 31 October 2026. Scope: a local engineering prototype of finalist 1. The app works with its declared subset and synthetic policy. **Genuine Typeform import, behavioral investigation, and source compatibility are not established.** Current reports record tested source fingerprints and actual outcomes.
 
+Integration status: [PR #4](https://github.com/Reallyeasy1/JinBianTai/pull/4) and [PR #5](https://github.com/Reallyeasy1/JinBianTai/pull/5) are merged into `main` under subsequent explicit authorization. The combined implementation merge is [`ecb9888`](https://github.com/Reallyeasy1/JinBianTai/commit/ecb98880c10cee0f2c2654cdf123f092a0c0aa61); its tree exactly matches the tested product head `5119e8b`. [The product CI run passed](https://github.com/Reallyeasy1/JinBianTai/actions/runs/41176421775). See [ROADMAP.md](ROADMAP.md) for the consolidated remaining plan. Historical branch and launch descriptions below retain the implementation record; they do not mean those PRs are still pending.
+
 ## Delivery boundary and SDLC record
 
 The implementation run followed the merged planning/design work: small shared contracts, engine/API, UI, independent testing/review, repairs, reproducibility checks, and reviewable source changes. The initial run excluded merging and deployment. The user subsequently authorized merging PR #3, which is now on main; no deployment was performed.

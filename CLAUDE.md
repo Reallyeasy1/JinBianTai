@@ -1,8 +1,8 @@
 # FormLift repository instructions
 
-Current state: local engineering prototype implemented. Read `docs/IMPLEMENTATION.md` and current reports first. Bundled fixtures are synthetic; genuine Typeform captures and compatibility remain absent. Do not treat engineering PASS as reference PASS or reset an existing implementation timer.
+Current state: local engineering prototype and product upgrades merged into `main`. Read `docs/ROADMAP.md`, `docs/IMPLEMENTATION.md` and current reports first. Bundled fixtures are synthetic; genuine Typeform captures and compatibility remain absent. Do not treat engineering PASS as reference PASS or reset an existing implementation timer.
 
-Phase 2 adds offline private evidence intake and stored-answer projection; see `docs/CAPTURE_WORKFLOW.md`. Never derive expected source answers using the engine, promote drafts automatically, or publish private comparison reports. The user explicitly authorized merging PR #3; that implementation is merged. Further changes remain reviewable on their own branch unless a subsequent instruction authorizes another merge.
+Phase 2 adds offline private evidence intake and stored-answer projection; see `docs/CAPTURE_WORKFLOW.md`. Never derive expected source answers using the engine, promote drafts automatically, or publish private comparison reports. PRs #3, #4 and #5 are merged following explicit authorization. `docs/ROADMAP.md` records the integration commits and CI evidence. Original launch restrictions are historical; follow the active user's authorization for new work.
 
 ## Task and document precedence
 
@@ -12,7 +12,7 @@ Follow the active user request. Planning requests stay in planning. An implement
 
 For implementation, read in this order:
 
-1. `docs/IMPLEMENTATION.md`: actual contracts, deviations, and limitations; then `docs/DESIGN.md` for original architecture.
+1. `docs/ROADMAP.md`: current status, priorities and agent handoffs; then `docs/IMPLEMENTATION.md` for actual contracts, deviations and limitations, and `docs/DESIGN.md` for original architecture.
 2. `docs/ACCEPTANCE.md`: test commands, evidence/release gates, result semantics.
 3. `docs/AGENT_WORKFLOW.md`: execution order, ownership, checkpoints, recovery.
 4. `docs/EVIDENCE_AND_TESTS.md`: reference experiment and normalization protocol.
@@ -41,6 +41,6 @@ Create and execute the commands in `docs/ACCEPTANCE.md`. For verification wrappe
 A manual browser check must remain manual. A zero-case or missing-reference verification cannot be green. End with exact commands, actual results, changed revision, scope, known failures, and evidence-backed claims. See `docs/START_HERE.md` for launch prerequisites and `docs/PROMPT.md` for the complete work order.
 
 
-## Current product continuation
+## Completed product continuation
 
-`docs/PRODUCT_UPGRADE_DESIGN.md` records the competitor review, response API/CSV contracts, UI redesign and agent ownership before implementation. For this explicit continuation, the UI agent owns `src/client.ts` and `public/`, the lead owns backend/integration, and QA owns assigned tests; ownership remains exclusive. Current tests include `npm run test:product`. Never treat offline downloaded receipts as automatically collected server records, silently truncate an oversized log, or export a different response snapshot than the reviewed revision.
+`docs/PRODUCT_UPGRADE_DESIGN.md` records the competitor review, response API/CSV contracts, UI redesign and agent ownership before implementation. During that completed continuation, the UI agent owned `src/client.ts` and `public/`, the lead owned backend/integration, and QA owned assigned tests. Assign exclusive ownership for new tasks using `docs/ROADMAP.md`; do not assume the old assignments remain active. Current tests include `npm run test:product`. Never treat offline downloaded receipts as automatically collected server records, silently truncate an oversized log, or export a different response snapshot than the reviewed revision.

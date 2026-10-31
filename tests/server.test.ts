@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -46,6 +46,23 @@ test('API-01: import, server replay, receipt, and actual file read-back', async 
   assert.deepEqual(receipt.answers.find((row: any) => row.field === 'budget').answer, { presence: 'missing' });
   assert.deepEqual(receipt.answers.find((row: any) => row.field === 'contact').answer,
     { presence: 'value', valueType: 'string', value: 'Synthetic API user' });
+});
+
+test('API-01b: an interrupted log line rejects the save without a receipt and preserves the damaged bytes', async t => {
+  const { base, post, imported, dataFile } = await app(t); const form = await imported();
+  assert.equal((await post('/api/responses', { formHash: form.formHash, events })).status, 201);
+  const damaged = (await readFile(dataFile, 'utf8')) + '{"schemaVersion":1,"respo';
+  await writeFile(dataFile, damaged);
+  const rejected = await post('/api/responses', { formHash: form.formHash, events });
+  assert.equal(rejected.status, 503);
+  const body = await rejected.json();
+  assert.equal(body.error.code, 'STORAGE_DAMAGED');
+  assert.equal(body.responseId, undefined);
+  assert.equal(await readFile(dataFile, 'utf8'), damaged);
+  // Later saves stay rejected rather than merging into the partial line.
+  assert.equal((await post('/api/responses', { formHash: form.formHash, events })).status, 503);
+  assert.equal(await readFile(dataFile, 'utf8'), damaged);
+  assert.equal((await fetch(`${base}/api/results?formHash=${form.formHash}`)).status, 422);
 });
 
 test('API-02: failed import leaves the previous model usable', async t => {
